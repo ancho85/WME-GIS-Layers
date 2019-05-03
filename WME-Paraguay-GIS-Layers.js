@@ -13,6 +13,7 @@
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // @connect      *
 // @connect www.asuncion.gov.py
+// @connect geo.stp.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -45,8 +46,8 @@ const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'MapOMatic';
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
-const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/layerDefs';
-const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
+// const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/layerDefs';
+// const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
 const DEC = s => atob(atob(s));
 const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
 const DEFAULT_STYLE = {
@@ -205,7 +206,7 @@ const STATES = {
 };
 const DEFAULT_VISIBLE_AT_ZOOM = 6;
 const SETTINGS_STORE_NAME = 'wme_py_gis_layers';
-const COUNTIES_URL = 'https://tigerweb.geo.census.gov/arcgis/rest/services/Census2010/State_County/MapServer/1/';
+const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
 const ALERT_UPDATE = false;
 const SCRIPT_VERSION = GM_info.script.version;
 const SCRIPT_VERSION_CHANGES = [
@@ -482,16 +483,21 @@ function hashString(value) {
 }
 
 function getCountiesUrl(extent) {
-    const geometry = {
-        xmin: extent.left,
-        ymin: extent.bottom,
-        xmax: extent.right,
-        ymax: extent.top,
-        spatialReference: { wkid: 102100, latestWkid: 3857 }
-    };
-    const url = `${COUNTIES_URL}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
-    return `${url}&outFields=BASENAME%2CSTATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
-        + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
+    // const geometry = {
+    //     xmin: extent.left,
+    //     ymin: extent.bottom,
+    //     xmax: extent.right,
+    //     ymax: extent.top,
+    //     spatialReference: { wkid: 102100, latestWkid: 3857 }
+    // };
+    //const url = `${COUNTIES_URL}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
+    //return `${url}&outFields=BASENAME%2CSTATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
+    //    + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
+    debugger;
+    const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto_desc AS STATE FROM dgeec.paraguay_2019_distritos `
+    var center = extent.getCenterLonLat();
+    var gps = WazeWrap.Geometry.ConvertTo4326(center.lon, center.lat);
+    return `${url} WHERE ST_Intersects(ST_SetSRID(ST_MakePoint(${gps.lon},${gps.lat}),4326), the_geom)`;
 }
 
 let _countiesInExtent = [];
@@ -722,6 +728,7 @@ function fetchFeatures() {
         url: getCountiesUrl(extent),
         method: 'GET',
         onload(res) {
+            debugger;
             if (res.status < 400) {
                 const data = $.parseJSON(res.responseText);
                 if (data.error) {
