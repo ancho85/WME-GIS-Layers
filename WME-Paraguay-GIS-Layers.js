@@ -44,7 +44,7 @@ const UPDATE_MESSAGE = '';
 // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
-const SCRIPT_AUTHOR = 'MapOMatic';
+const SCRIPT_AUTHOR = 'ancho85';   // MapOMatic is the original author, but he won't see any Paraguay GIS Layers
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
 // const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/layerDefs';
 // const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
@@ -1610,16 +1610,30 @@ function getLocalSpreadheetJSON() {
         ],
         [
           "ASU",
-          "Asunción (Parcelas)",
-          "asuncion-parcelas",
+          "Asunción (Manzanas)",
+          "asuncion-manzanas",
           "",
           "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/15",
           "",
           "numero, zona, cuenta_corriente, barrio",
-          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + ' (Nro.)';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + fieldValues.zona + ', ' + fieldValues.cuenta_corriente + ' Barrio: ' + fieldValues.barrio;\n}\nreturn label;",
+          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + 'Zona:' + fieldValues.zona + ', CuentaCorriente:' + fieldValues.cuenta_corriente;\n}\nreturn label;",
           "parcels",
-          "2",
-          "2",
+          "4",
+          "5",
+          "1"
+        ],
+        [
+          "ASU",
+          "Asunción (Lotes)",
+          "asuncion-lotes",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/14",
+          "",
+          "numero, zona, cuenta, manzana, barrio",
+          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 8) {\n  label += '\\n' + 'Manzana:' + fieldValues.manzana + ', Cuenta:' + fieldValues.cuenta;\n}\nreturn label;",
+          "parcels",
+          "5",
+          "7",
           "1"
         ]
       ]
