@@ -493,8 +493,7 @@ function getCountiesUrl(extent) {
     //const url = `${COUNTIES_URL}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
     //return `${url}&outFields=BASENAME%2CSTATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
     //    + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
-    debugger;
-    const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto_desc AS STATE FROM dgeec.paraguay_2019_distritos `
+    const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
     var center = extent.getCenterLonLat();
     var gps = WazeWrap.Geometry.ConvertTo4326(center.lon, center.lat);
     return `${url} WHERE ST_Intersects(ST_SetSRID(ST_MakePoint(${gps.lon},${gps.lat}),4326), the_geom)`;
@@ -728,16 +727,15 @@ function fetchFeatures() {
         url: getCountiesUrl(extent),
         method: 'GET',
         onload(res) {
-            debugger;
             if (res.status < 400) {
                 const data = $.parseJSON(res.responseText);
                 if (data.error) {
-                    logError(`Error in US Census counties data: ${data.error.message}`);
+                    logError(`Error in PY Census counties data: ${data.error.message}`);
                 } else {
-                    _countiesInExtent = data.features.map(feature => feature.attributes.BASENAME.toLowerCase());
-                    logDebug(`US Census counties: ${_countiesInExtent.join(', ')}`);
-                    _statesInExtent = _.unique(data.features.map(
-                        feature => STATES.fromId(parseInt(feature.attributes.STATE, 10))[0]
+                    _countiesInExtent = data.rows.map(feature => feature.basename.toLowerCase());
+                    logDebug(`PY Census counties: ${_countiesInExtent.join(', ')}`);
+                    _statesInExtent = _.unique(data.rows.map(
+                        feature => STATES.fromId(parseInt(feature.state, 10))[0]
                     ));
 
                     let layersToFetch;
@@ -782,12 +780,12 @@ function fetchFeatures() {
                 }
             } else {
                 logDebug(`HTTP request error: ${JSON.stringify(res)}`);
-                logError(`Could not fetch counties from US Census site.  Request returned ${res.status}`);
+                logError(`Could not fetch counties from PY Census site.  Request returned ${res.status}`);
             }
         },
         onerror(res) {
             logDebug(`xmlhttpRequest error:${JSON.stringify(res)}`);
-            logError('Could not fetch counties from US Census site.  An error was thrown.');
+            logError('Could not fetch counties from PY Census site.  An error was thrown.');
         }
     });
 }
@@ -1172,7 +1170,7 @@ function initGui(firstCall = true) {
             )
         ).html();
 
-        new WazeWrap.Interface.Tab('GIS-L PY', content, initTab, null);
+        new WazeWrap.Interface.Tab('GIS-L', content, initTab, null);
         WazeWrap.Interface.AddLayerCheckbox('Display', 'Paraguay GIS Layers', _settings.enabled, onLayerCheckboxChanged);
         W.map.events.register('moveend', null, onMapMove);
         showScriptInfoAlert();
@@ -1606,6 +1604,20 @@ function getLocalSpreadheetJSON() {
           "LOCALE_NAME, ADDRESS, CITY, STATE, ZIP_CODE",
           "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.LOCALE_NAME + ' (Post Office)';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + fieldValues.ADDRESS + ', ' + fieldValues.CITY + ', ' + fieldValues.STATE + ' ' + fieldValues.ZIP_CODE;\n}\nreturn label;",
           "post_offices",
+          "2",
+          "2",
+          "1"
+        ],
+        [
+          "ASU",
+          "Asunción (Parcelas)",
+          "asuncion-parcelas",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/15",
+          "",
+          "numero, zona, cuenta_corriente, barrio",
+          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + ' (Nro.)';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + fieldValues.zona + ', ' + fieldValues.cuenta_corriente + ' Barrio: ' + fieldValues.barrio;\n}\nreturn label;",
+          "parcels",
           "2",
           "2",
           "1"
