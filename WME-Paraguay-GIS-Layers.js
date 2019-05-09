@@ -494,9 +494,17 @@ function getCountiesUrl(extent) {
     //return `${url}&outFields=BASENAME%2CSTATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
     //    + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
     const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
-    var center = extent.getCenterLonLat();
-    var gps = WazeWrap.Geometry.ConvertTo4326(center.lon, center.lat);
-    return `${url} WHERE ST_Intersects(ST_SetSRID(ST_MakePoint(${gps.lon},${gps.lat}),4326), the_geom)`;
+    var gps1 = WazeWrap.Geometry.ConvertTo4326(extent.left, extent.top);
+    var gps2 = WazeWrap.Geometry.ConvertTo4326(extent.right, extent.bottom);
+    return `${url} WHERE ST_Intersects(
+        ST_SetSRID(
+            ST_MakeBox2D(
+                ST_Point(${gps1.lon},${gps1.lat}),
+                ST_Point(${gps2.lon},${gps2.lat})
+            ),
+            4326
+        ),
+        the_geom)`;
 }
 
 let _countiesInExtent = [];
@@ -1610,12 +1618,12 @@ function getLocalSpreadheetJSON() {
         ],
         [
           "ASU",
-          "Asunción (Manzanas)",
+          "Manzanas",
           "asuncion-manzanas",
           "",
           "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/15",
           "",
-          "numero, zona, cuenta_corriente, barrio",
+          "numero, zona, cuenta_corriente",
           "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + 'Zona:' + fieldValues.zona + ', CuentaCorriente:' + fieldValues.cuenta_corriente;\n}\nreturn label;",
           "parcels",
           "4",
@@ -1624,16 +1632,30 @@ function getLocalSpreadheetJSON() {
         ],
         [
           "ASU",
-          "Asunción (Lotes)",
+          "Lotes",
           "asuncion-lotes",
           "",
           "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/14",
           "",
-          "numero, zona, cuenta, manzana, barrio",
+          "numero, zona, cuenta, manzana",
           "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 8) {\n  label += '\\n' + 'Manzana:' + fieldValues.manzana + ', Cuenta:' + fieldValues.cuenta;\n}\nreturn label;",
           "parcels",
           "5",
           "7",
+          "1"
+        ],
+        [
+          "ASU",
+          "Barrios",
+          "asuncion-barrios",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Mapa_Base/MapServer/32",
+          "",
+          "nombre",
+          "return fieldValues.nombre;",
+          "state_parcels",
+          "0",
+          "0",
           "1"
         ]
       ]
