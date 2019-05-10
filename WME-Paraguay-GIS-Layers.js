@@ -125,6 +125,13 @@ const LAYER_STYLES = {
         fillOpacity: 0,
         strokeColor: '#f7f',
         fontColor: '#f7f'
+    },
+    water: {
+        fillOpacity: 1,
+        strokeColor: '#13a1dd',
+        fillColor: '#13a1dd',
+        fontColor: '#13a1dd',
+        fontWeight: 'bold'
     }
 };
 const ROAD_STYLE = new OL.Style(
@@ -1656,6 +1663,20 @@ function getLocalSpreadheetJSON() {
           "state_parcels",
           "0",
           "0",
+          "1"
+        ],
+        [
+          "ASU",
+          "Cauces hídricos",
+          "asuncion-agua",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Mapa_Base/MapServer/20",
+          "",
+          "nombre",
+          "return fieldValues.nombre;",
+          "water",
+          "5",
+          "5",
           "1"
         ]
       ]
