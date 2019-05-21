@@ -1185,7 +1185,7 @@ function initGui(firstCall = true) {
             )
         ).html();
 
-        new WazeWrap.Interface.Tab('GIS-L', content, initTab, null);
+        new WazeWrap.Interface.Tab('PY GIS-L', content, initTab, null);
         WazeWrap.Interface.AddLayerCheckbox('Display', 'Paraguay GIS Layers', _settings.enabled, onLayerCheckboxChanged);
         W.map.events.register('moveend', null, onMapMove);
         showScriptInfoAlert();
@@ -1206,7 +1206,7 @@ async function loadSpreadsheetAsync() {
     const REQUIRED_FIELD_NAMES = [
         'state', 'name', 'id', 'counties', 'url', 'where', 'labelFields',
         'processLabel', 'style', 'visibleAtZoom', 'labelsVisibleAtZoom', 'enabled',
-        'restrictTo', 'oneTimeAlert'
+        'restrictTo', 'oneTimeAlert', "areaToPoint"
     ];
     const result = { error: null };
     const checkFieldNames = fldName => fieldNames.indexOf(fldName) > -1;
@@ -1593,7 +1593,8 @@ function getLocalSpreadheetJSON() {
           "labelsVisibleAtZoom",
           "enabled",
           "restrictTo",
-          "oneTimeAlert"
+          "oneTimeAlert",
+          "areaToPoint"
         ],
         [
           "PRY",
@@ -1678,6 +1679,51 @@ function getLocalSpreadheetJSON() {
           "5",
           "5",
           "1"
+        ],
+        [
+          "ASU",
+          "Espacios verdes",
+          "asuncion-verdes",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Espacios_Verdes/MapServer/0",
+          "",
+          "TextString",
+          "return fieldValues.TextString;",
+          "forests_parks",
+          "3",
+          "3",
+          "1"
+        ],
+        [
+          "ASU",
+          "Zonas (Distritos)",
+          "asuncion-zonas",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Mapa_Base/MapServer/27",
+          "",
+          "descripcion ",
+          "return fieldValues.descripcion;",
+          "state_parcels",
+          "0",
+          "0",
+          "1"
+        ],
+        [
+          "ASU",
+          "Numeracion",
+          "asuncion-numeracion",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/0",
+          "",
+          "TextString",
+          "return fieldValues.TextString;",
+          "milemarkers",
+          "6",
+          "6",
+          "1",
+          "", // restrictTo
+          "", // oneTimeAlert
+          "1"  // convert area to point
         ]
       ]
     }
