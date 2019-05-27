@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/45389
-// @version      2019.04.02.005-py001
+// @version      2019.05.19.005-py001
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -1336,7 +1336,7 @@ async function init(firstCall = true) {
 
 function bootstrap() {
     if (W && W.loginManager && W.map && W.loginManager.user && W.model
-        && W.model.states && W.model.states.getObjectArray().length) {
+        && W.model.states && W.model.states.getObjectArray().length && WazeWrap && WazeWrap.Ready) {
         log('Inicializando...');
         WazeWrap.Interface.ShowScriptUpdate(GM_info.script.name, SCRIPT_VERSION, UPDATE_MESSAGE, GF_URL);
         init();
