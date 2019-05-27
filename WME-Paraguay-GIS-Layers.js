@@ -1141,12 +1141,12 @@ function initTab(firstCall = true) {
     if (firstCall) {
         if (!$('#py-gis-layers-power-btn').length) {
             const color = _settings.enabled ? '#00bd00' : '#ccc';
-            $('a[href="#sidepanel-py-gis-l"]').prepend(
+            $('a[href="#sidepanel-pygis-l"]').prepend(
                 $('<span>', {
                     class: 'fa fa-power-off',
                     id: 'py-gis-layers-power-btn',
                     style: `margin-right: 5px;cursor: pointer;color: ${color};font-size: 13px;`,
-                    title: 'Alternar Paraguay GIS Layers'
+                    title: 'Activar/Desactivar Paraguay GIS Layers'
                 }).click(evt => {
                     evt.stopPropagation();
                     setEnabled(!_settings.enabled);
@@ -1296,7 +1296,7 @@ async function init(firstCall = true) {
     if (firstCall) {
         loadSettingsFromStorage();
         installPathFollowingLabels();
-        new WazeWrap.Interface.Shortcut('PyGisLayersAddrDisplay', 'Alternar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
+        new WazeWrap.Interface.Shortcut('PyGisLayersAddrDisplay', 'Activar/desactivar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
             'layers', 'layersTogglePyGisAddressLabelDisplay', _settings.toggleHnsOnlyShortcut, onAddressDisplayShortcutKey, null).add();
         window.addEventListener('beforeunload', saveSettingsToStorage, false);
         _layerSettingsDialog = new LayerSettingsDialog();
