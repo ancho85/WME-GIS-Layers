@@ -1597,42 +1597,14 @@ function getLocalSpreadheetJSON() {
           "areaToPoint"
         ],
         [
-          "PRY",
-          "Airports",
-          "us-airports",
-          "",
-          "https://maps.bts.dot.gov/services/rest/services/NTAD/Airports/MapServer/0",
-          "FacilityType='Airport'",
-          "FacilityType, FullName, LocationID, ICAOID",
-          "return fieldValues.FullName + ' ' + fieldValues.FacilityType + ' (' + fieldValues.LocationID + (fieldValues.ICAOID ? ', ' + fieldValues.ICAOID:'') + ')';",
-          "post_offices",
-          "0",
-          "0",
-          "1"
-        ],
-        [
-          "PRY",
-          "Post Offices",
-          "us-post-offices",
-          "",
-          "https://services5.arcgis.com/TBEibzxOE0dzXUyc/ArcGIS/rest/services/USPS_Plants_DUs_CD/FeatureServer/1",
-          "FACILITY_TYPE='POST_OFF' AND Status\u003c\u003e'CLOSED'",
-          "LOCALE_NAME, ADDRESS, CITY, STATE, ZIP_CODE",
-          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.LOCALE_NAME + ' (Post Office)';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + fieldValues.ADDRESS + ', ' + fieldValues.CITY + ', ' + fieldValues.STATE + ' ' + fieldValues.ZIP_CODE;\n}\nreturn label;",
-          "post_offices",
-          "2",
-          "2",
-          "1"
-        ],
-        [
           "ASU",
           "Manzanas",
           "asuncion-manzanas",
           "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/15",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/12",
           "",
-          "numero, zona, cuenta_corriente",
-          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 5) {\n  label += '\\n' + 'Zona:' + fieldValues.zona + ', CuentaCorriente:' + fieldValues.cuenta_corriente;\n}\nreturn label;",
+          "textstring",
+          "return fieldValues.textstring",
           "parcels",
           "4",
           "5",
@@ -1640,13 +1612,13 @@ function getLocalSpreadheetJSON() {
         ],
         [
           "ASU",
-          "Lotes",
+          "Lotes (C.C.)",
           "asuncion-lotes",
           "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Parcelas/FeatureServer/14",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/29",
           "",
-          "numero, zona, cuenta, manzana, barrio",
-          "let zoom = W.map.getZoom();\nif (zoom \u003e= 2) {\n  label = fieldValues.numero + '';\n}\nif (zoom \u003e= 8) {\n  label += '\\n' + 'Manzana:' + fieldValues.manzana + ', Zona:' + fieldValues.zona + '\\n' + 'Cuenta:' + fieldValues.cuenta;\n}\nreturn label;",
+          "catastro.sigasu.Lote.cuenta",
+          "return fieldValues['catastro.sigasu.Lote.cuenta'];",
           "parcels",
           "5",
           "7",
@@ -1657,10 +1629,10 @@ function getLocalSpreadheetJSON() {
           "Barrios",
           "asuncion-barrios",
           "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Mapa_Base/MapServer/32",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/32",
           "",
           "nombre",
-          "return fieldValues.nombre;",
+          "return fieldValues.DESCRIPCION;",
           "state_parcels",
           "0",
           "0",
@@ -1699,7 +1671,7 @@ function getLocalSpreadheetJSON() {
           "Zonas (Distritos)",
           "asuncion-zonas",
           "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapas/Mapa_Base/MapServer/27",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/27",
           "",
           "descripcion ",
           "return fieldValues.descripcion;",
@@ -1710,7 +1682,7 @@ function getLocalSpreadheetJSON() {
         ],
         [
           "ASU",
-          "Numeracion",
+          "Numeracion (segmento)",
           "asuncion-numeracion",
           "",
           "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/0",
@@ -1724,7 +1696,21 @@ function getLocalSpreadheetJSON() {
           "", // restrictTo
           "", // oneTimeAlert
           "1"  // convert area to point
-        ]
+        ],
+        [
+          "ASU",
+          "Numeracion (casa)",
+          "asuncion-casas",
+          "",
+          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/29",
+          "",
+          "catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.n_casa,catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.calle_prin",
+          "\nlet zoom = W.map.getZoom();\nlabel = '';\nif (zoom \u003e= 2 \u0026\u0026 fieldValues['catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.n_casa'] \u003e 0) {\n  label = fieldValues['catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.n_casa'] + '';\nif (zoom \u003e= 8) {\n  label += '\\n' + fieldValues['catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.calle_prin'];\n}}\nreturn label;",
+          "parcels",
+          "5",
+          "7",
+          "1"
+        ],
       ]
     }
     return ljson;
