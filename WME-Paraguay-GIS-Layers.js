@@ -46,8 +46,8 @@ const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85';   // MapOMatic is the original author, but he won't see any Paraguay GIS Layers
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
-// const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/layerDefs';
-// const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
+const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
+const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
 const DEC = s => atob(atob(s));
 const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
 const DEFAULT_STYLE = {
@@ -1197,8 +1197,7 @@ function initGui(firstCall = true) {
 async function loadSpreadsheetAsync() {
     let data;
     try {
-        // data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?${DEC(API_KEY)}`);
-        data = getLocalSpreadheetJSON();
+        data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?key=${DEC(API_KEY)}`);
     } catch (err) {
         throw new Error(`Spreadsheet call failed. (${err.status}: ${err.statusText})`);
     }
@@ -1560,158 +1559,4 @@ function installPathFollowingLabels() {
         removeChildById(this.textRoot, featureId + '_txtpath0');
     };
 
-}
-
-function getLocalSpreadheetJSON() {
-    var ljson = {
-      "range": "'Layer Definitions'!A2:N3154",
-      "majorDimension": "ROWS",
-      "values": [
-        [
-          "2018.04.27.001",
-          "",
-          "No spaces in id's",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "If there is a value for visibleAtZoom, make sure labelsVisibleAtZoom also has a value."
-        ],
-        [
-          "state",
-          "name",
-          "id",
-          "counties",
-          "url",
-          "where",
-          "labelFields",
-          "processLabel",
-          "style",
-          "visibleAtZoom",
-          "labelsVisibleAtZoom",
-          "enabled",
-          "restrictTo",
-          "oneTimeAlert",
-          "areaToPoint"
-        ],
-        [
-          "ASU",
-          "Manzanas",
-          "asuncion-manzanas",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/12",
-          "",
-          "textstring",
-          "return fieldValues.textstring",
-          "parcels",
-          "4",
-          "5",
-          "1"
-        ],
-        [
-          "ASU",
-          "Lotes (C.C.)",
-          "asuncion-lotes",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/29",
-          "",
-          "catastro.sigasu.Lote.cuenta",
-          "return fieldValues['catastro.sigasu.Lote.cuenta'];",
-          "parcels",
-          "5",
-          "7",
-          "1"
-        ],
-        [
-          "ASU",
-          "Barrios",
-          "asuncion-barrios",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/32",
-          "",
-          "nombre",
-          "return fieldValues.nombre;",
-          "state_parcels",
-          "0",
-          "0",
-          "1"
-        ],
-        [
-          "ASU",
-          "Cauces hídricos",
-          "asuncion-agua",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/20",
-          "",
-          "nombre",
-          "return fieldValues.nombre;",
-          "water",
-          "5",
-          "5",
-          "0"
-        ],
-        [
-          "ASU",
-          "Espacios verdes",
-          "asuncion-verdes",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Espacios_Verdes/MapServer/0",
-          "",
-          "TextString",
-          "return fieldValues.TextString;",
-          "forests_parks",
-          "3",
-          "3",
-          "1"
-        ],
-        [
-          "ASU",
-          "Zonas (Distritos)",
-          "asuncion-zonas",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/14",
-          "",
-          "TextString",
-          "return fieldValues.TextString;",
-          "state_parcels",
-          "0",
-          "0",
-          "1"
-        ],
-        [
-          "ASU",
-          "Numeracion (segmento)",
-          "asuncion-numeracion",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/0",
-          "",
-          "TextString",
-          "return fieldValues.TextString;",
-          "milemarkers",
-          "6",
-          "6",
-          "1",
-          "", // restrictTo
-          "", // oneTimeAlert
-          "1"  // convert area to point
-        ],
-        [
-          "ASU",
-          "Numeracion (casa)",
-          "asuncion-casas",
-          "",
-          "http://www.asuncion.gov.py/arcgis/rest/services/Mapa_Web/Mapa_General/MapServer/29",
-          "",
-          "catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.n_casa,catastro.sigasu.Lote.nrocasa_di,catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.calle_prin,catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.calle_sec",
-          "\nlet zoom = W.map.getZoom();\nlabel = '';\nif (zoom \u003e= 2) {\n  label = fieldValues['catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.n_casa'] + '/' + fieldValues['catastro.sigasu.Lote.nrocasa_di'].replace('+','');\nif (zoom \u003e= 8) {\n  label += '\\n' + fieldValues['catastro.sigasu.DATOS_SIREC_NOVIEMBRE_2018.calle_prin'];\n}}\nreturn label;",
-          "parcels",
-          "5",
-          "7",
-          "1"
-        ],
-      ]
-    }
-    return ljson;
 }
