@@ -14,6 +14,7 @@
 // @connect      *
 // @connect www.asuncion.gov.py
 // @connect geo.stp.gov.py
+// @connect www.arcgis.com
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -566,7 +567,12 @@ function processFeatures(data, token, gisLayer) {
     } else if (data.error) {
         logError(`Error in layer "${gisLayer.name}": ${data.error.message}`);
     } else {
-        const items = data.features;
+        let items = {}
+        if (gisLayer.isFeatureSet){
+            items = data.layers[0].featureSet.features;
+        }else{
+            items = data.features;
+        }
         if (!token.cancel) {
             let error = false;
             const distinctValues = [];
@@ -594,11 +600,11 @@ function processFeatures(data, token, gisLayer) {
                         }
                         // Special handling for this layer, because it doesn't have a geometry property.
                         // Coordinates are stored in the attributes.
-                        if (gisLayer.id === 'nc-richmond-co-pts') {
-                            const pt = new OL.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
-                            pt.transform(W.map.displayProjection, W.map.projection);
-                            item.geometry = pt;
-                        }
+                        // if (gisLayer.id === 'nc-richmond-co-pts') {
+                        //     const pt = new OL.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
+                        //     pt.transform(W.map.displayProjection, W.map.projection);
+                        //     item.geometry = pt;
+                        // }
                         if (item.geometry) {
                             if (item.geometry.x) {
                                 featureGeometry = new OL.Geometry.Point(item.geometry.x + layerOffset.x,
