@@ -15,6 +15,12 @@
 // @connect www.asuncion.gov.py
 // @connect geo.stp.gov.py
 // @connect www.arcgis.com
+// @connect services1.arcgis.com
+// @connect services2.arcgis.com
+// @connect services5.arcgis.com
+// @connect services6.arcgis.com
+// @connect services8.arcgis.com
+// @connect geohidroinformatica.itaipu.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -465,13 +471,19 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.distinctFields) {
         fields = fields.concat(gisLayer.distinctFields);
     }
-    let url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
-    url += gisLayer.token ? `&token=${gisLayer.token}` : '';
-    url += `&outFields=${encodeURIComponent(fields.join(','))}`;
-    url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
-    url += `&inSR=${gisLayer.spatialReference ? gisLayer.spatialReference : '102100'}`;
-    url += '&outSR=3857&f=json';
-    url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
+    let url = "";
+    if (gisLayer.serverType == "GeoServer"){
+        url = gisLayer.url;
+    }
+    else {  //default ArcGIS server
+        url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
+        url += gisLayer.token ? `&token=${gisLayer.token}` : '';
+        url += `&outFields=${encodeURIComponent(fields.join(','))}`;
+        url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
+        url += `&inSR=${gisLayer.spatialReference ? gisLayer.spatialReference : '102100'}`;
+        url += '&outSR=3857&f=json';
+        url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
+    }
 
     logDebug(`Request URL: ${url}`);
     return url;
@@ -637,6 +649,20 @@ function processFeatures(data, token, gisLayer) {
                                 });
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
+                            } else if (gisLayer.serverType == "GeoServer" && item.geometry.type == "MultiPolygon"){
+                                const source = item.geometry.coordinates[0][0];
+                                const polygonList = [];
+                                for (var i=0; i<source.length; i+=1) {
+                                    const pointList = [];
+                                    for (var j=0; j<source[i].length; j+=1) {
+                                        var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
+                                        pointList.push(point);
+                                    }
+                                    var linearRing = new OL.Geometry.LinearRing(pointList);
+                                    var polygon = new OL.Geometry.Polygon([linearRing]);
+                                    polygonList.push(polygon);
+                                }
+                                featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                 logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
@@ -1212,7 +1238,7 @@ async function loadSpreadsheetAsync() {
     const REQUIRED_FIELD_NAMES = [
         'state', 'name', 'id', 'counties', 'url', 'where', 'labelFields',
         'processLabel', 'style', 'visibleAtZoom', 'labelsVisibleAtZoom', 'enabled',
-        'restrictTo', 'oneTimeAlert', "areaToPoint"
+        'restrictTo', 'oneTimeAlert', "areaToPoint", "isFeatureSet", "serverType"
     ];
     const result = { error: null };
     const checkFieldNames = fldName => fieldNames.indexOf(fldName) > -1;
