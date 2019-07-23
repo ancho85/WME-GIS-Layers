@@ -21,6 +21,7 @@
 // @connect services6.arcgis.com
 // @connect services8.arcgis.com
 // @connect geohidroinformatica.itaipu.gov.py
+// @connect geobosques.pti.org.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
