@@ -474,8 +474,12 @@ function getUrl(extent, gisLayer) {
     let url = "";
     if (gisLayer.serverType == "GeoServer"){
         url = gisLayer.url;
+		url += '&CRS=EPSG:3857'
+		var bbox = geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
+		url += '&bbox=' + bbox;
+        url += '&srsName=EPSG:3857&outputFormat=application/json';
     }
-    else {  //default ArcGIS server
+    else { //default ArcGIS server
         url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
         url += gisLayer.token ? `&token=${gisLayer.token}` : '';
         url += `&outFields=${encodeURIComponent(fields.join(','))}`;
@@ -650,14 +654,12 @@ function processFeatures(data, token, gisLayer) {
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
                             } else if (gisLayer.serverType == "GeoServer" && item.geometry.type == "MultiPolygon"){
-                                debugger;
                                 const source = item.geometry.coordinates[0];
                                 const polygonList = [];
                                 for (var i=0; i<source.length; i+=1) {
                                     const pointList = [];
                                     for (var j=0; j<source[i].length; j+=1) {
                                         var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
-                                        point.transform('EPSG:32721', 'EPSG:4326');
                                         pointList.push(point);
                                     }
                                     var linearRing = new OL.Geometry.LinearRing(pointList);
@@ -676,17 +678,19 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
+                                let attrs = gisLayer.serverType == "GeoServer" ? item.properties : item.attributes;
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
-                                        fieldName => item.attributes[fieldName]
+                                        fieldName => attrs[fieldName]
                                     ).join(' ').trim()}\n`;
                                 }
                                 if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
                                     label += gisLayer.labelFields.map(
-                                        fieldName => item.attributes[fieldName]
+                                        fieldName => attrs[fieldName]
                                     ).join(' ').trim();
                                     if (gisLayer.processLabel) {
-                                        label = gisLayer.processLabel(label, item.attributes);
+
+                                        label = gisLayer.processLabel(label, attrs);
                                         label = label ? label.trim() : '';
                                     }
                                 }
