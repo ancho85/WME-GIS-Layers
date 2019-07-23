@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/45389
-// @version      2019.06.07.001-py001
+// @version      2019.07.23.001-py001
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -46,7 +46,7 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-const UPDATE_MESSAGE = '';
+const UPDATE_MESSAGE = 'Bug fix due to WME update';
 // const UPDATE_MESSAGE = `<ul>${[
 //     'Added ability to shift layers. Right click a layer in the list to bring up the layer settings window.'
 // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
@@ -735,21 +735,21 @@ function processFeatures(data, token, gisLayer) {
                         j--;
                     }
                 }
-                labels = _.unique(labels);
+                labels = _.uniq(labels);
                 if (labels.length > 1) {
                     labels.forEach((label, idx) => {
                         label = label.replace(/\n/g, ' ').replace(/\s{2,}/, ' ').replace(/\bUNIT\s.{1,5}$/i, '').trim();
                         ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
                         labels[idx] = label;
                     });
-                    labels = _.unique(labels);
+                    labels = _.uniq(labels);
                     labels.sort();
                     if (labels.length > 12) {
                         const len = labels.length;
                         labels = labels.slice(0, 10);
                         labels.push(`(${len - 10} more...)`);
                     }
-                    f1.attributes.label = _.unique(labels).join('\n');
+                    f1.attributes.label = _.uniq(labels).join('\n');
                 } else {
                     let { label } = f1.attributes;
                     ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
@@ -789,7 +789,7 @@ function fetchFeatures() {
                 } else {
                     _countiesInExtent = data.rows.map(feature => feature.basename.toLowerCase());
                     logDebug(`PY Census counties: ${_countiesInExtent.join(', ')}`);
-                    _statesInExtent = _.unique(data.rows.map(
+                    _statesInExtent = _.uniq(data.rows.map(
                         feature => STATES.fromId(parseInt(feature.state, 10))[0]
                     ));
 
