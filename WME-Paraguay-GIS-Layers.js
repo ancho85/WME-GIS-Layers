@@ -22,6 +22,7 @@
 // @connect services8.arcgis.com
 // @connect geohidroinformatica.itaipu.gov.py
 // @connect geobosques.pti.org.py
+// @connect catastro.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -657,6 +658,22 @@ function processFeatures(data, token, gisLayer) {
                             } else if (gisLayer.serverType == "GeoServer"){
                                 if (item.geometry.type == "Point") {
                                     featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                } else if (item.geometry.type == "Polygon") {
+                                    const rings = [];
+                                    item.geometry.coordinates.forEach(ringIn => {
+                                        const pnts = [];
+                                        for (let i = 0; i < ringIn.length; i++) {
+                                            pnts.push(new OL.Geometry.Point(ringIn[i][0] + layerOffset.x,
+                                                ringIn[i][1] + layerOffset.y));
+                                        }
+                                        rings.push(new OL.Geometry.LinearRing(pnts));
+                                    });
+                                    featureGeometry = new OL.Geometry.Polygon(rings);
+                                    if (gisLayer.areaToPoint) {
+                                        featureGeometry = featureGeometry.getCentroid();
+                                    } else {
+                                        area = featureGeometry.getArea();
+                                    }
                                 } else if (item.geometry.type == "MultiPolygon") {
                                     const source = item.geometry.coordinates[0];
                                     const polygonList = [];
