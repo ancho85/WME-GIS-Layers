@@ -654,20 +654,32 @@ function processFeatures(data, token, gisLayer) {
                                 });
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
-                            } else if (gisLayer.serverType == "GeoServer" && item.geometry.type == "MultiPolygon"){
-                                const source = item.geometry.coordinates[0];
-                                const polygonList = [];
-                                for (var i=0; i<source.length; i+=1) {
-                                    const pointList = [];
-                                    for (var j=0; j<source[i].length; j+=1) {
-                                        var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
-                                        pointList.push(point);
+                            } else if (gisLayer.serverType == "GeoServer"){
+                                if (item.geometry.type == "Point") {
+                                    featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                } else if (item.geometry.type == "MultiPolygon") {
+                                    const source = item.geometry.coordinates[0];
+                                    const polygonList = [];
+                                    for (var i = 0; i < source.length; i += 1) {
+                                        const pointList = [];
+                                        for (var j = 0; j < source[i].length; j += 1) {
+                                            var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
+                                            pointList.push(point);
+                                        }
+                                        var linearRing = new OL.Geometry.LinearRing(pointList);
+                                        var polygon = new OL.Geometry.Polygon([linearRing]);
+                                        polygonList.push(polygon);
                                     }
-                                    var linearRing = new OL.Geometry.LinearRing(pointList);
-                                    var polygon = new OL.Geometry.Polygon([linearRing]);
-                                    polygonList.push(polygon);
+                                    featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
+                                } else if (item.geometry.type == "MultiLineString"){
+                                    const pointList = [];
+                                    item.geometry.coordinates.forEach(path => {
+                                        path.forEach(point => pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x,
+                                            point[1] + layerOffset.y)));
+                                    });
+                                    featureGeometry = new OL.Geometry.LineString(pointList);
+                                    featureGeometry.skipDupeCheck = true;
                                 }
-                                featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                 logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
