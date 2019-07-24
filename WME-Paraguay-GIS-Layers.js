@@ -477,9 +477,15 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.serverType == "GeoServer"){
         url = gisLayer.url;
 		url += '&CRS=EPSG:3857'
-		var bbox = geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
-		url += '&bbox=' + bbox;
+		url += '&bbox=' + geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
         url += '&srsName=EPSG:3857&outputFormat=application/json';
+    } else if (gisLayer.serverType == "CartoDB"){
+         // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
+        url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
+        if (fields){
+            url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
+        }
+        url += '&format=GeoJSON'
     }
     else { //default ArcGIS server
         url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
@@ -655,7 +661,7 @@ function processFeatures(data, token, gisLayer) {
                                 });
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
-                            } else if (gisLayer.serverType == "GeoServer"){
+                            } else if (["GeoServer", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
                                 if (item.geometry.type == "Point") {
                                     featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
                                 } else if (item.geometry.type == "Polygon") {
@@ -708,7 +714,7 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
-                                let attrs = gisLayer.serverType == "GeoServer" ? item.properties : item.attributes;
+                                let attrs =  ["GeoServer", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
                                         fieldName => attrs[fieldName]
