@@ -23,6 +23,7 @@
 // @connect geohidroinformatica.itaipu.gov.py
 // @connect geobosques.pti.org.py
 // @connect catastro.gov.py
+// @connect geo1.skycop.com.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -474,7 +475,7 @@ function getUrl(extent, gisLayer) {
         fields = fields.concat(gisLayer.distinctFields);
     }
     let url = "";
-    if (gisLayer.serverType == "GeoServer"){
+    if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
 		url += '&CRS=EPSG:3857'
 		url += '&bbox=' + geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
@@ -661,7 +662,7 @@ function processFeatures(data, token, gisLayer) {
                                 });
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
-                            } else if (["GeoServer", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+                            } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
                                 if (item.geometry.type == "Point") {
                                     featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
                                 } else if (item.geometry.type == "Polygon") {
@@ -714,7 +715,7 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
-                                let attrs =  ["GeoServer", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
+                                let attrs =  ["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
                                         fieldName => attrs[fieldName]
