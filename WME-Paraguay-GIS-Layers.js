@@ -24,6 +24,7 @@
 // @connect geobosques.pti.org.py
 // @connect catastro.gov.py
 // @connect geo1.skycop.com.py
+// @connect sigcosiplan.unasursg.org
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -467,7 +468,7 @@ function getUrl(extent, gisLayer) {
         }
     };
     const geometryStr = JSON.stringify(geometry);
-    let fields = gisLayer.labelFields;
+    let fields = gisLayer.labelFields.filter(function (e) { return e != ""});
     if (gisLayer.labelHeaderFields) {
         fields = fields.concat(gisLayer.labelHeaderFields);
     }
@@ -483,7 +484,7 @@ function getUrl(extent, gisLayer) {
     } else if (gisLayer.serverType == "CartoDB"){
          // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
         url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
-        if (fields){
+        if (fields.length){
             url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
         }
         url += '&format=GeoJSON'
