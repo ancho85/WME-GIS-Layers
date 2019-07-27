@@ -17,6 +17,7 @@
 // @connect www.arcgis.com
 // @connect services1.arcgis.com
 // @connect services2.arcgis.com
+// @connect services3.arcgis.com
 // @connect services5.arcgis.com
 // @connect services6.arcgis.com
 // @connect services8.arcgis.com
@@ -25,6 +26,12 @@
 // @connect catastro.gov.py
 // @connect geo1.skycop.com.py
 // @connect sigcosiplan.unasursg.org
+// @connect snmf.infona.gov.py
+// @connect 190.52.167.121
+// @connect sedac.ciesin.columbia.edu
+// @connect 190.128.205.76
+// @connect wwf-sight-maps.org
+// @connect www.geosur.info
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
