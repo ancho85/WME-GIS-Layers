@@ -32,6 +32,7 @@
 // @connect 190.128.205.76
 // @connect wwf-sight-maps.org
 // @connect www.geosur.info
+// @connect a.mapillary.com
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -587,6 +588,13 @@ function filterLayerCheckboxes() {
         statesToHide.forEach(st => $(`#py-gis-layers-for-${st}`).hide());
     }
 }
+function convertFeatureGeometry(gisLayer, featureGeometry) {
+    if (gisLayer.spatialReference) {
+        const proj = new OL.Projection(`EPSG:${gisLayer.spatialReference}`);
+        featureGeometry.transform(proj, W.map.getProjection());
+    }
+    return featureGeometry;
+}
 
 const ROAD_ABBR = [
     [/\bAVENUE$/, 'AVE'], [/\bCIRCLE$/, 'CIR'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
@@ -703,7 +711,7 @@ function processFeatures(data, token, gisLayer) {
                                         polygonList.push(polygon);
                                     }
                                     featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
-                                } else if (item.geometry.type == "MultiLineString"){
+                                } else if (item.geometry.type == "MultiLineString") {
                                     const pointList = [];
                                     item.geometry.coordinates.forEach(path => {
                                         path.forEach(point => pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x,
@@ -711,7 +719,14 @@ function processFeatures(data, token, gisLayer) {
                                     });
                                     featureGeometry = new OL.Geometry.LineString(pointList);
                                     featureGeometry.skipDupeCheck = true;
+                                } else if (item.geometry.type == "LineString") {
+                                    const pointList = [];
+                                    item.geometry.coordinates.forEach(point => {
+                                        pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
+                                    });
+                                    featureGeometry = new OL.Geometry.LineString(pointList);
                                 }
+                                featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                 logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
@@ -723,7 +738,7 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
-                                let attrs =  ["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
+                                let attrs = ["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
                                         fieldName => attrs[fieldName]
