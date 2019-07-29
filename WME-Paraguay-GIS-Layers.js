@@ -33,6 +33,7 @@
 // @connect wwf-sight-maps.org
 // @connect www.geosur.info
 // @connect a.mapillary.com
+// @connect geoshape.unasursg.org
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -487,7 +488,12 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
 		url += '&CRS=EPSG:3857'
-		url += '&bbox=' + geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
+		if (gisLayer.where){
+		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:3857') and ${gisLayer.where})`;
+            url += `&cql_filter=${encodeURIComponent(where)}`;
+        } else {
+		    url += '&bbox=' + geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
+        }
         url += '&srsName=EPSG:3857&outputFormat=application/json';
     } else if (gisLayer.serverType == "CartoDB"){
          // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
