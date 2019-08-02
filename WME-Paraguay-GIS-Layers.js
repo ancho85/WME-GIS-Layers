@@ -34,6 +34,7 @@
 // @connect www.geosur.info
 // @connect a.mapillary.com
 // @connect geoshape.unasursg.org
+// @connect geo-ide.carto.com
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
