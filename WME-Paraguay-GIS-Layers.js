@@ -35,6 +35,7 @@
 // @connect a.mapillary.com
 // @connect geoshape.unasursg.org
 // @connect geo-ide.carto.com
+// @connect 201.217.59.143
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -488,14 +489,14 @@ function getUrl(extent, gisLayer) {
     let url = "";
     if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
-		url += '&CRS=EPSG:3857'
+		url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
 		if (gisLayer.where){
-		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:3857') and ${gisLayer.where})`;
+		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
             url += `&cql_filter=${encodeURIComponent(where)}`;
         } else {
-		    url += '&bbox=' + geometry.xmin + "," + geometry.ymin + "," + geometry.xmax + "," + geometry.ymax + ',EPSG:3857';
+		    url += `&bbox=${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},EPSG:${geometry.spatialReference.latestWkid}`;
         }
-        url += '&srsName=EPSG:3857&outputFormat=application/json';
+        url += `&srsName=EPSG:${geometry.spatialReference.latestWkid}&outputFormat=${gisLayer.output? gisLayer.output : "application/json"}`;
     } else if (gisLayer.serverType == "CartoDB"){
          // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
         url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
@@ -503,8 +504,9 @@ function getUrl(extent, gisLayer) {
             url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
         }
         url += '&format=GeoJSON'
-    }
-    else { //default ArcGIS server
+    } else if (gisLayer.isFeatureSet) {
+        url = gisLayer.url; // no extra filters for this arcgis resource (caching)
+    } else { //default ArcGIS server
         url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
         url += gisLayer.token ? `&token=${gisLayer.token}` : '';
         url += `&outFields=${encodeURIComponent(fields.join(','))}`;
