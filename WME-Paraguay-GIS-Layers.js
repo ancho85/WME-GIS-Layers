@@ -66,7 +66,7 @@ const UPDATE_MESSAGE = 'Bug fix due to WME update';
 // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
-const SCRIPT_AUTHOR = 'ancho85';   // MapOMatic is the original author, but he won't fix any Paraguay related issues
+const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
 const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
 const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
@@ -211,12 +211,12 @@ const _regexReplace = {
 
 let _gisLayers = [];
 
-const _layerRefinements = [
-    {
-        id: 'us-post-offices',
-        labelHeaderFields: ['LOCALE_NAME']
-    }
-];
+// const _layerRefinements = [
+//     {
+//         id: 'us-post-offices',
+//         labelHeaderFields: ['LOCALE_NAME']
+//     }
+// ];
 
 const STATES = {
     _states: [
@@ -1415,22 +1415,22 @@ async function init(firstCall = true) {
             logError(result.error);
             return;
         }
-        _layerRefinements.forEach(layerRefinement => {
-            const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
-            if (layerDef) {
-                Object.keys(layerRefinement).forEach(fldName => {
-                    const value = layerRefinement[fldName];
-                    if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
-                        logDebug(`The "${fldName}" property of layer "${
-                            layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
-                            + ' The spreadsheet value takes precedence.');
-                    } else if (value) layerDef[fldName] = value;
-                });
-            } else {
-                logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
-                    + ' in the spreadsheet.  It can probably be removed from the script.');
-            }
-        });
+        // _layerRefinements.forEach(layerRefinement => {
+        //     const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
+        //     if (layerDef) {
+        //         Object.keys(layerRefinement).forEach(fldName => {
+        //             const value = layerRefinement[fldName];
+        //             if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
+        //                 logDebug(`The "${fldName}" property of layer "${
+        //                     layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
+        //                     + ' The spreadsheet value takes precedence.');
+        //             } else if (value) layerDef[fldName] = value;
+        //         });
+        //     } else {
+        //         logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
+        //             + ' in the spreadsheet.  It can probably be removed from the script.');
+        //     }
+        // });
         logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
         initGui(firstCall);
         fetchFeatures();
