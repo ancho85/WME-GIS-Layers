@@ -36,6 +36,8 @@
 // @connect geoshape.unasursg.org
 // @connect geo-ide.carto.com
 // @connect 201.217.59.143
+// @connect pese.pti.org.py
+// @connect 190.128.154.130
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
