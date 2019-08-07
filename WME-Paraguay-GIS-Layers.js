@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/45389
-// @version      2019.07.23.001-py001
+// @version      2019.07.23.001-py002
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -17,9 +17,27 @@
 // @connect www.arcgis.com
 // @connect services1.arcgis.com
 // @connect services2.arcgis.com
+// @connect services3.arcgis.com
 // @connect services5.arcgis.com
 // @connect services6.arcgis.com
 // @connect services8.arcgis.com
+// @connect geohidroinformatica.itaipu.gov.py
+// @connect geobosques.pti.org.py
+// @connect catastro.gov.py
+// @connect geo1.skycop.com.py
+// @connect sigcosiplan.unasursg.org
+// @connect snmf.infona.gov.py
+// @connect 190.52.167.121
+// @connect sedac.ciesin.columbia.edu
+// @connect 190.128.205.76
+// @connect wwf-sight-maps.org
+// @connect www.geosur.info
+// @connect a.mapillary.com
+// @connect geoshape.unasursg.org
+// @connect geo-ide.carto.com
+// @connect 201.217.59.143
+// @connect pese.pti.org.py
+// @connect 190.128.154.130
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -50,7 +68,7 @@ const UPDATE_MESSAGE = 'Bug fix due to WME update';
 // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
-const SCRIPT_AUTHOR = 'ancho85';   // MapOMatic is the original author, but he won't fix any Paraguay related issues
+const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
 const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
 const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
@@ -195,12 +213,12 @@ const _regexReplace = {
 
 let _gisLayers = [];
 
-const _layerRefinements = [
-    {
-        id: 'us-post-offices',
-        labelHeaderFields: ['LOCALE_NAME']
-    }
-];
+// const _layerRefinements = [
+//     {
+//         id: 'us-post-offices',
+//         labelHeaderFields: ['LOCALE_NAME']
+//     }
+// ];
 
 const STATES = {
     _states: [
@@ -463,20 +481,42 @@ function getUrl(extent, gisLayer) {
         }
     };
     const geometryStr = JSON.stringify(geometry);
-    let fields = gisLayer.labelFields;
+    let fields = gisLayer.labelFields.filter(function (e) { return e != ""});
     if (gisLayer.labelHeaderFields) {
         fields = fields.concat(gisLayer.labelHeaderFields);
     }
     if (gisLayer.distinctFields) {
         fields = fields.concat(gisLayer.distinctFields);
     }
-    let url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
-    url += gisLayer.token ? `&token=${gisLayer.token}` : '';
-    url += `&outFields=${encodeURIComponent(fields.join(','))}`;
-    url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
-    url += `&inSR=${gisLayer.spatialReference ? gisLayer.spatialReference : '102100'}`;
-    url += '&outSR=3857&f=json';
-    url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
+    let url = "";
+    if (gisLayer.serverType == "GeoNode"){
+        url = gisLayer.url;
+		url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
+		if (gisLayer.where){
+		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
+            url += `&cql_filter=${encodeURIComponent(where)}`;
+        } else {
+		    url += `&bbox=${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},EPSG:${geometry.spatialReference.latestWkid}`;
+        }
+        url += `&srsName=EPSG:${geometry.spatialReference.latestWkid}&outputFormat=${gisLayer.output? gisLayer.output : "application/json"}`;
+    } else if (gisLayer.serverType == "CartoDB"){
+         // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
+        url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
+        if (fields.length){
+            url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
+        }
+        url += '&format=GeoJSON'
+    } else if (gisLayer.isFeatureSet) {
+        url = gisLayer.url; // no extra filters for this arcgis resource (caching)
+    } else { //default ArcGIS server
+        url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
+        url += gisLayer.token ? `&token=${gisLayer.token}` : '';
+        url += `&outFields=${encodeURIComponent(fields.join(','))}`;
+        url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
+        url += `&inSR=${gisLayer.spatialReference ? gisLayer.spatialReference : '102100'}`;
+        url += '&outSR=3857&f=json';
+        url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
+    }
 
     logDebug(`Request URL: ${url}`);
     return url;
@@ -558,6 +598,13 @@ function filterLayerCheckboxes() {
     if (_settings.onlyShowApplicableLayers) {
         statesToHide.forEach(st => $(`#py-gis-layers-for-${st}`).hide());
     }
+}
+function convertFeatureGeometry(gisLayer, featureGeometry) {
+    if (gisLayer.spatialReference) {
+        const proj = new OL.Projection(`EPSG:${gisLayer.spatialReference}`);
+        featureGeometry.transform(proj, W.map.getProjection());
+    }
+    return featureGeometry;
 }
 
 const ROAD_ABBR = [
@@ -642,6 +689,55 @@ function processFeatures(data, token, gisLayer) {
                                 });
                                 featureGeometry = new OL.Geometry.LineString(pointList);
                                 featureGeometry.skipDupeCheck = true;
+                            } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+                                if (item.geometry.type == "Point") {
+                                    featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                } else if (item.geometry.type == "Polygon") {
+                                    const rings = [];
+                                    item.geometry.coordinates.forEach(ringIn => {
+                                        const pnts = [];
+                                        for (let i = 0; i < ringIn.length; i++) {
+                                            pnts.push(new OL.Geometry.Point(ringIn[i][0] + layerOffset.x,
+                                                ringIn[i][1] + layerOffset.y));
+                                        }
+                                        rings.push(new OL.Geometry.LinearRing(pnts));
+                                    });
+                                    featureGeometry = new OL.Geometry.Polygon(rings);
+                                    if (gisLayer.areaToPoint) {
+                                        featureGeometry = featureGeometry.getCentroid();
+                                    } else {
+                                        area = featureGeometry.getArea();
+                                    }
+                                } else if (item.geometry.type == "MultiPolygon") {
+                                    const source = item.geometry.coordinates[0];
+                                    const polygonList = [];
+                                    for (var i = 0; i < source.length; i += 1) {
+                                        const pointList = [];
+                                        for (var j = 0; j < source[i].length; j += 1) {
+                                            var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
+                                            pointList.push(point);
+                                        }
+                                        var linearRing = new OL.Geometry.LinearRing(pointList);
+                                        var polygon = new OL.Geometry.Polygon([linearRing]);
+                                        polygonList.push(polygon);
+                                    }
+                                    featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
+                                } else if (item.geometry.type == "MultiLineString") {
+                                    const pointList = [];
+                                    item.geometry.coordinates.forEach(path => {
+                                        path.forEach(point => pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x,
+                                            point[1] + layerOffset.y)));
+                                    });
+                                    featureGeometry = new OL.Geometry.LineString(pointList);
+                                    featureGeometry.skipDupeCheck = true;
+                                } else if (item.geometry.type == "LineString") {
+                                    const pointList = [];
+                                    item.geometry.coordinates.forEach(point => {
+                                        pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
+                                    });
+                                    featureGeometry = new OL.Geometry.LineString(pointList);
+                                }
+                                featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                 logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
@@ -653,17 +749,19 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
+                                let attrs = ["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
-                                        fieldName => item.attributes[fieldName]
+                                        fieldName => attrs[fieldName]
                                     ).join(' ').trim()}\n`;
                                 }
                                 if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
                                     label += gisLayer.labelFields.map(
-                                        fieldName => item.attributes[fieldName]
+                                        fieldName => attrs[fieldName]
                                     ).join(' ').trim();
                                     if (gisLayer.processLabel) {
-                                        label = gisLayer.processLabel(label, item.attributes);
+
+                                        label = gisLayer.processLabel(label, attrs);
                                         label = label ? label.trim() : '';
                                     }
                                 }
@@ -1217,7 +1315,7 @@ async function loadSpreadsheetAsync() {
     const REQUIRED_FIELD_NAMES = [
         'state', 'name', 'id', 'counties', 'url', 'where', 'labelFields',
         'processLabel', 'style', 'visibleAtZoom', 'labelsVisibleAtZoom', 'enabled',
-        'restrictTo', 'oneTimeAlert', "areaToPoint"
+        'restrictTo', 'oneTimeAlert', "areaToPoint", "isFeatureSet", "serverType"
     ];
     const result = { error: null };
     const checkFieldNames = fldName => fieldNames.indexOf(fldName) > -1;
@@ -1319,22 +1417,22 @@ async function init(firstCall = true) {
             logError(result.error);
             return;
         }
-        _layerRefinements.forEach(layerRefinement => {
-            const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
-            if (layerDef) {
-                Object.keys(layerRefinement).forEach(fldName => {
-                    const value = layerRefinement[fldName];
-                    if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
-                        logDebug(`The "${fldName}" property of layer "${
-                            layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
-                            + ' The spreadsheet value takes precedence.');
-                    } else if (value) layerDef[fldName] = value;
-                });
-            } else {
-                logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
-                    + ' in the spreadsheet.  It can probably be removed from the script.');
-            }
-        });
+        // _layerRefinements.forEach(layerRefinement => {
+        //     const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
+        //     if (layerDef) {
+        //         Object.keys(layerRefinement).forEach(fldName => {
+        //             const value = layerRefinement[fldName];
+        //             if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
+        //                 logDebug(`The "${fldName}" property of layer "${
+        //                     layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
+        //                     + ' The spreadsheet value takes precedence.');
+        //             } else if (value) layerDef[fldName] = value;
+        //         });
+        //     } else {
+        //         logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
+        //             + ' in the spreadsheet.  It can probably be removed from the script.');
+        //     }
+        // });
         logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
         initGui(firstCall);
         fetchFeatures();
