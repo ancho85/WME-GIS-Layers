@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/45389
-// @version      2019.07.23.001-py002
+// @version      2019.07.23.001-py003
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -21,6 +21,7 @@
 // @connect services5.arcgis.com
 // @connect services6.arcgis.com
 // @connect services8.arcgis.com
+// @connect services9.arcgis.com
 // @connect geohidroinformatica.itaipu.gov.py
 // @connect geobosques.pti.org.py
 // @connect catastro.gov.py
