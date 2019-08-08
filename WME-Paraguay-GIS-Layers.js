@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.07.23.001-py003
+// @version      2019.07.23.001-py004
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -63,11 +63,11 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-const UPDATE_MESSAGE = 'Bug fix due to WME update';
+const UPDATE_MESSAGE = 'Updated GF URL for Paraguay';
 // const UPDATE_MESSAGE = `<ul>${[
 //     'Added ability to shift layers. Right click a layer in the list to bring up the layer settings window.'
 // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
-const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
+const GF_URL = 'https://greasyfork.org/en/scripts/388277-wme-paraguay-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
