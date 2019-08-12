@@ -39,6 +39,7 @@
 // @connect 201.217.59.143
 // @connect pese.pti.org.py
 // @connect 190.128.154.130
+// @connect www.mapadeasentamientos.org.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -609,7 +610,7 @@ function convertFeatureGeometry(gisLayer, featureGeometry) {
 }
 
 const ROAD_ABBR = [
-    [/\bAVENUE$/, 'AVE'], [/\bCIRCLE$/, 'CIR'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
+    [/\bAVDA./gi, 'Av.'], [/\bAVENIDA/gi, 'Av.'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
     [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
     [/\bTERRACE$/, 'TER']
 ];
@@ -795,9 +796,10 @@ function processFeatures(data, token, gisLayer) {
         // Check for duplicate geometries.
         for (let i = 0; i < features.length; i++) {
             const f1 = features[i];
+            let labels = [f1.attributes.label];
             if (!f1.geometry.skipDupeCheck) {
                 const c1 = f1.geometry.getCentroid();
-                let labels = [f1.attributes.label];
+
                 for (let j = i + 1; j < features.length; j++) {
                     const f2 = features[j];
                     if (!f2.geometry.skipDupeCheck && f2.geometry.getCentroid().distanceTo(c1) < 1) {
@@ -806,26 +808,26 @@ function processFeatures(data, token, gisLayer) {
                         j--;
                     }
                 }
-                labels = _.uniq(labels);
-                if (labels.length > 1) {
-                    labels.forEach((label, idx) => {
-                        label = label.replace(/\n/g, ' ').replace(/\s{2,}/, ' ').replace(/\bUNIT\s.{1,5}$/i, '').trim();
-                        ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
-                        labels[idx] = label;
-                    });
-                    labels = _.uniq(labels);
-                    labels.sort();
-                    if (labels.length > 12) {
-                        const len = labels.length;
-                        labels = labels.slice(0, 10);
-                        labels.push(`(${len - 10} more...)`);
-                    }
-                    f1.attributes.label = _.uniq(labels).join('\n');
-                } else {
-                    let { label } = f1.attributes;
+            }
+            labels = _.uniq(labels);
+            if (labels.length > 1) {
+                labels.forEach((label, idx) => {
+                    label = label.replace(/\n/g, ' ').replace(/\s{2,}/, ' ').replace(/\bUNIT\s.{1,5}$/i, '').trim();
                     ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
-                    f1.attributes.label = label;
+                    labels[idx] = label;
+                });
+                labels = _.uniq(labels);
+                labels.sort();
+                if (labels.length > 12) {
+                    const len = labels.length;
+                    labels = labels.slice(0, 10);
+                    labels.push(`(${len - 10} more...)`);
                 }
+                f1.attributes.label = _.uniq(labels).join('\n');
+            } else {
+                let { label } = f1.attributes;
+                ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
+                f1.attributes.label = label;
             }
         }
 
