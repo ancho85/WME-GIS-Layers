@@ -40,6 +40,7 @@
 // @connect pese.pti.org.py
 // @connect 190.128.154.130
 // @connect www.mapadeasentamientos.org.py
+// @connect gis-gfw.wri.org
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -842,6 +843,7 @@ function processFeatures(data, token, gisLayer) {
 } // END processFeatures()
 
 function fetchFeatures() {
+    if (!_settings.enabled) return;
     if (_ignoreFetch) return;
     _lastToken.cancel = true;
     _lastToken = { cancel: false, features: [], layersProcessed: 0 };
@@ -897,11 +899,13 @@ function fetchFeatures() {
                                 } else {
                                     logDebug(`HTTP request error: ${JSON.stringify(res2)}`);
                                     logError(`Could not fetch layer "${gisLayer.id}". Request returned ${res2.status}`);
+                                    $(`label[for="py-gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
                                 }
                             },
                             onerror(res3) {
                                 logDebug(`xmlhttpRequest error:${JSON.stringify(res3)}`);
                                 logError(`Could not fetch layer "${gisLayer.id}". An error was thrown.`);
+                                $(`label[for="py-gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
                             }
                         });
                     });
