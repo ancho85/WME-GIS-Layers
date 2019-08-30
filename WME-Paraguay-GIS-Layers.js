@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.07.23.001-py004
+// @version      2019.07.23.001-py005
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -65,10 +65,14 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-const UPDATE_MESSAGE = 'Updated GF URL for Paraguay';
-// const UPDATE_MESSAGE = `<ul>${[
-//     'Added ability to shift layers. Right click a layer in the list to bring up the layer settings window.'
-// ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
+// const UPDATE_MESSAGE = '';
+const UPDATE_MESSAGE = `<ul>${[
+    'Link para actualizaciones corregido.'
+    'Abreviaturas son cambiadas sin depender del control de duplicados.'
+    'La obtención de datos se realiza solamente si el Layer esta habilitado.'
+    'De ocurrir un error, se colorea en rojo la opcion asociada.'
+    'Agregado soporte de filtrado para CartoDB.'
+].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/en/scripts/388277-wme-paraguay-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
@@ -507,6 +511,9 @@ function getUrl(extent, gisLayer) {
         url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
         if (fields.length){
             url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
+        }
+        if (gisLayer.where){
+            url += `AND ${gisLayer.where}`;
         }
         url += '&format=GeoJSON'
     } else if (gisLayer.isFeatureSet) {
