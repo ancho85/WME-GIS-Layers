@@ -69,7 +69,7 @@
 const UPDATE_MESSAGE = `<ul>${[
     'Link para actualizaciones corregido.'
     'Abreviaturas son cambiadas sin depender del control de duplicados.'
-    'La obtención de datos se realiza solamente si el Layer esta habilitado.'
+    'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
     'De ocurrir un error, se colorea en rojo la opcion asociada.'
     'Agregado soporte de filtrado para CartoDB.'
 ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
