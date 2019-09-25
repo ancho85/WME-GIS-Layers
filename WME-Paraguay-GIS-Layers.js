@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.07.23.001-py005
+// @version      2019.07.23.001-py006
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -65,14 +65,14 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-// const UPDATE_MESSAGE = '';
-const UPDATE_MESSAGE = `<ul>${[
-    'Link para actualizaciones corregido.'
-    'Abreviaturas son cambiadas sin depender del control de duplicados.'
-    'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
-    'De ocurrir un error, se colorea en rojo la opcion asociada.'
-    'Agregado soporte de filtrado para CartoDB.'
-].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
+const UPDATE_MESSAGE = 'Showing current Department in the city transparent bar (below the toolbar)';
+// const UPDATE_MESSAGE = `<ul>${[
+//     'Link para actualizaciones corregido.'
+//     'Abreviaturas son cambiadas sin depender del control de duplicados.'
+//     'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
+//     'De ocurrir un error, se colorea en rojo la opcion asociada.'
+//     'Agregado soporte de filtrado para CartoDB.'
+// ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/en/scripts/388277-wme-paraguay-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
@@ -617,6 +617,20 @@ function convertFeatureGeometry(gisLayer, featureGeometry) {
     return featureGeometry;
 }
 
+function setStateFullAddress() {
+		if (document.getElementsByClassName("full-address")){
+			var full = document.getElementsByClassName("full-address")[0];
+			if (full != undefined){
+				var yy = full.innerText;
+				if (yy.includes("Paraguay")){
+                    var deptos = _statesInExtent.join(', ');
+					yy = yy.replace(/\[.*\]/g, '');
+                    yy += " [" + deptos + "]";
+                    document.getElementsByClassName("full-address")[0].innerText = yy;
+				}
+			}
+		}
+}
 const ROAD_ABBR = [
     [/\bAVDA./gi, 'Av.'], [/\bAVENIDA/gi, 'Av.'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
     [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
@@ -874,7 +888,7 @@ function fetchFeatures() {
                     _statesInExtent = _.uniq(data.rows.map(
                         feature => STATES.fromId(parseInt(feature.state, 10))[0]
                     ));
-
+                    setStateFullAddress();
                     let layersToFetch;
                     if (!_layersCleared) {
                         _layersCleared = true;
