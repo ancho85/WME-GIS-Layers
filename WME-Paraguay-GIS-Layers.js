@@ -617,6 +617,20 @@ function convertFeatureGeometry(gisLayer, featureGeometry) {
     return featureGeometry;
 }
 
+function setStateFullAddress() {
+		if (document.getElementsByClassName("full-address")){
+			var full = document.getElementsByClassName("full-address")[0];
+			if (full != undefined){
+				var yy = full.innerText;
+				if (yy.includes("Paraguay")){
+                    var deptos = _statesInExtent.join(', ');
+					yy = yy.replace(/\[.*\]/g, '');
+                    yy += " [" + deptos + "]";
+                    document.getElementsByClassName("full-address")[0].innerText = yy;
+				}
+			}
+		}
+}
 const ROAD_ABBR = [
     [/\bAVDA./gi, 'Av.'], [/\bAVENIDA/gi, 'Av.'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
     [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
@@ -874,7 +888,7 @@ function fetchFeatures() {
                     _statesInExtent = _.uniq(data.rows.map(
                         feature => STATES.fromId(parseInt(feature.state, 10))[0]
                     ));
-
+                    setStateFullAddress();
                     let layersToFetch;
                     if (!_layersCleared) {
                         _layersCleared = true;
