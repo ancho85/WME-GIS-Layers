@@ -41,6 +41,7 @@
 // @connect 190.128.154.130
 // @connect www.mapadeasentamientos.org.py
 // @connect gis-gfw.wri.org
+// @connect opengeo.pol.una.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -496,12 +497,13 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.distinctFields) {
         fields = fields.concat(gisLayer.distinctFields);
     }
-    let url = "";
+    let url = ""
     if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
 		url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
 		if (gisLayer.where){
-		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
+		    var geom_field = gisLayer.cql_the_geom ? gisLayer.cql_the_geom : "the_geom"; //some geom fields are called simply 'geom'
+		    var where = `(bbox(${geom_field},${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
             url += `&cql_filter=${encodeURIComponent(where)}`;
         } else {
 		    url += `&bbox=${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},EPSG:${geometry.spatialReference.latestWkid}`;
