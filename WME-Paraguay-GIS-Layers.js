@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.07.23.001-py006
+// @version      2019.07.23.001-py007
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -66,7 +66,7 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-const UPDATE_MESSAGE = '';
+const UPDATE_MESSAGE = 'COUNTIES_URL changed due to policies change of dgeec data availability';
 //const UPDATE_MESSAGE = `<ul>${[
 //    'Link para actualizaciones corregido.'
 //    'Abreviaturas son cambiadas sin depender del control de duplicados.'
