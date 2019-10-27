@@ -41,6 +41,7 @@
 // @connect 190.128.154.130
 // @connect www.mapadeasentamientos.org.py
 // @connect gis-gfw.wri.org
+// @connect opengeo.pol.una.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -65,14 +66,14 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-const UPDATE_MESSAGE = 'Showing current Department in the city transparent bar (below the toolbar)';
-// const UPDATE_MESSAGE = `<ul>${[
-//     'Link para actualizaciones corregido.'
-//     'Abreviaturas son cambiadas sin depender del control de duplicados.'
-//     'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
-//     'De ocurrir un error, se colorea en rojo la opcion asociada.'
-//     'Agregado soporte de filtrado para CartoDB.'
-// ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
+const UPDATE_MESSAGE = '';
+//const UPDATE_MESSAGE = `<ul>${[
+//    'Link para actualizaciones corregido.'
+//    'Abreviaturas son cambiadas sin depender del control de duplicados.'
+//    'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
+//    'De ocurrir un error, se colorea en rojo la opcion asociada.'
+//    'Agregado soporte de filtrado para CartoDB.'
+//].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
 const GF_URL = 'https://greasyfork.org/en/scripts/388277-wme-paraguay-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
@@ -245,6 +246,7 @@ const STATES = {
 const DEFAULT_VISIBLE_AT_ZOOM = 6;
 const SETTINGS_STORE_NAME = 'wme_py_gis_layers';
 const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
+const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
 const ALERT_UPDATE = false;
 const SCRIPT_VERSION = GM_info.script.version;
 const SCRIPT_VERSION_CHANGES = [
@@ -495,12 +497,13 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.distinctFields) {
         fields = fields.concat(gisLayer.distinctFields);
     }
-    let url = "";
+    let url = ""
     if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
 		url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
 		if (gisLayer.where){
-		    var where = `(bbox(the_geom,${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
+		    var geom_field = gisLayer.cql_the_geom ? gisLayer.cql_the_geom : "the_geom"; //some geom fields are called simply 'geom'
+		    var where = `(bbox(${geom_field},${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
             url += `&cql_filter=${encodeURIComponent(where)}`;
         } else {
 		    url += `&bbox=${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},EPSG:${geometry.spatialReference.latestWkid}`;
@@ -546,28 +549,29 @@ function hashString(value) {
 }
 
 function getCountiesUrl(extent) {
-    // const geometry = {
-    //     xmin: extent.left,
-    //     ymin: extent.bottom,
-    //     xmax: extent.right,
-    //     ymax: extent.top,
-    //     spatialReference: { wkid: 102100, latestWkid: 3857 }
-    // };
-    //const url = `${COUNTIES_URL}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
-    //return `${url}&outFields=BASENAME%2CSTATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
-    //    + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
-    const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
-    var gps1 = WazeWrap.Geometry.ConvertTo4326(extent.left, extent.top);
-    var gps2 = WazeWrap.Geometry.ConvertTo4326(extent.right, extent.bottom);
-    return `${url} WHERE ST_Intersects(
-        ST_SetSRID(
-            ST_MakeBox2D(
-                ST_Point(${gps1.lon},${gps1.lat}),
-                ST_Point(${gps2.lon},${gps2.lat})
-            ),
-            4326
-        ),
-        the_geom)`;
+     const geometry = {
+         xmin: extent.left,
+         ymin: extent.bottom,
+         xmax: extent.right,
+         ymax: extent.top,
+         spatialReference: { wkid: 102100, latestWkid: 3857 }
+     };
+    const url = `${COUNTIES_URL2}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
+    return `${url}&outFields=DIST_DESC as BASENAME%2CDPTO as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
+        + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
+
+    //const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
+    //var gps1 = WazeWrap.Geometry.ConvertTo4326(extent.left, extent.top);
+    //var gps2 = WazeWrap.Geometry.ConvertTo4326(extent.right, extent.bottom);
+    //return `${url} WHERE ST_Intersects(
+    //    ST_SetSRID(
+    //        ST_MakeBox2D(
+    //            ST_Point(${gps1.lon},${gps1.lat}),
+    //            ST_Point(${gps2.lon},${gps2.lat})
+    //        ),
+    //        4326
+    //    ),
+    //    the_geom)`;
 }
 
 let _countiesInExtent = [];
@@ -883,10 +887,10 @@ function fetchFeatures() {
                 if (data.error) {
                     logError(`Error in PY Census counties data: ${data.error.message}`);
                 } else {
-                    _countiesInExtent = data.rows.map(feature => feature.basename.toLowerCase());
+                    _countiesInExtent = data.features.map(feature => feature.attributes.BASENAME.toLowerCase());
                     logDebug(`PY Census counties: ${_countiesInExtent.join(', ')}`);
-                    _statesInExtent = _.uniq(data.rows.map(
-                        feature => STATES.fromId(parseInt(feature.state, 10))[0]
+                    _statesInExtent = _.uniq(data.features.map(
+                        feature => STATES.fromId(parseInt(feature.attributes.STATE, 10))[0]
                     ));
                     setStateFullAddress();
                     let layersToFetch;
