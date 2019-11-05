@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.07.23.001-py007
+// @version      2019.07.23.001-py008
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -42,6 +42,7 @@
 // @connect www.mapadeasentamientos.org.py
 // @connect gis-gfw.wri.org
 // @connect opengeo.pol.una.py
+// @connect gis.mic.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -498,7 +499,9 @@ function getUrl(extent, gisLayer) {
         fields = fields.concat(gisLayer.distinctFields);
     }
     let url = ""
-    if (gisLayer.serverType == "GeoNode"){
+    if (gisLayer.isFeatureSet) {
+        url = gisLayer.url; // no extra filters for this resource (caching)
+    } else if (gisLayer.serverType == "GeoNode"){
         url = gisLayer.url;
 		url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
 		if (gisLayer.where){
@@ -519,8 +522,6 @@ function getUrl(extent, gisLayer) {
             url += `AND ${gisLayer.where}`;
         }
         url += '&format=GeoJSON'
-    } else if (gisLayer.isFeatureSet) {
-        url = gisLayer.url; // no extra filters for this arcgis resource (caching)
     } else { //default ArcGIS server
         url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
         url += gisLayer.token ? `&token=${gisLayer.token}` : '';
@@ -648,7 +649,7 @@ function processFeatures(data, token, gisLayer) {
         logError(`Error in layer "${gisLayer.name}": ${data.error.message}`);
     } else {
         let items = {}
-        if (gisLayer.isFeatureSet){
+        if (gisLayer.isFeatureSet == 1){  // 2 is for GeoNode
             items = data.layers[0].featureSet.features;
         }else{
             items = data.features;
