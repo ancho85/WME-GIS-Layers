@@ -1,8 +1,8 @@
-/* eslint-disable brace-style, curly, func-name, nonblock-statement-body-position, no-template-curly-in-string, func-names */
+/* eslint-disable brace-style, curly, nonblock-statement-body-position, no-template-curly-in-string, func-names */
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.10.30.001-py008
+// @version      2019.11.21.001-py008
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -67,15 +67,11 @@
 // const LAYER_DEF_VERSION = '2018.04.27.001';  // NOT ACTUALLY USED YET
 
 // **************************************************************************************************************
-//const UPDATE_MESSAGE = 'COUNTIES_URL changed due to policies change of dgeec data availability';
-//const UPDATE_MESSAGE = `<ul>${[
-//    'Link para actualizaciones corregido.'
-//    'Abreviaturas son cambiadas sin depender del control de duplicados.'
-//    'La obtencion de datos se realiza solamente si el Layer esta habilitado.'
-//    'De ocurrir un error, se colorea en rojo la opcion asociada.'
-//    'Agregado soporte de filtrado para CartoDB.'
-//].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
-const GF_URL = 'https://greasyfork.org/en/scripts/388277-wme-paraguay-gis-layers';
+// const UPDATE_MESSAGE = 'Bug fix due to WME update';
+// const UPDATE_MESSAGE = `<ul>${[
+//     'Added ability to shift layers. Right click a layer in the list to bring up the layer settings window.'
+// ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
+const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
 // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
 const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
@@ -189,7 +185,7 @@ const ROAD_STYLE = new OL.Style(
         fontSize: 11
     }, {
         context: {
-            getOffset() { return -(W.map.getZoom() + 5); },
+            getOffset() { return -(W.map.getOLMap().getZoom() + 5); },
             getSmooth() { return ''; },
             getReadable() { return '1'; },
             getAlign() { return 'cb'; }
@@ -250,7 +246,7 @@ const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
 const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
 const ALERT_UPDATE = false;
 const SCRIPT_VERSION = GM_info.script.version;
-const SCRIPT_VERSION_CHANGES = ['WazeWrap notification system.', 'WME beta compatibility.'];
+const SCRIPT_VERSION_CHANGES = ['WME v2.43-40-gf367bffa4 compatibility.'];
 /* const SCRIPT_VERSION_CHANGES = [
     GM_info.script.name,
     `v${SCRIPT_VERSION}`,
@@ -475,7 +471,7 @@ function saveSettingsToStorage() {
 function getUrl(extent, gisLayer) {
     if (gisLayer.spatialReference) {
         const proj = new OL.Projection(`EPSG:${gisLayer.spatialReference}`);
-        extent.transform(W.map.getProjection(), proj);
+        extent.transform(W.map.getOLMap().getProjection(), proj);
     }
     let layerOffset = _settings.getLayerSetting(gisLayer.id, 'offset');
     if (!layerOffset) {
@@ -586,7 +582,7 @@ function getFetchableLayers(getInvisible) {
             && _settings.selectedStates.indexOf(gisLayer.state) > -1;
         const isInState = gisLayer.state === 'PRY' || _statesInExtent.indexOf(STATES.toFullName(gisLayer.state)) > -1;
         // Be sure to use hasOwnProperty when checking this, since 0 is a valid value.
-        const isValidZoom = getInvisible || W.map.getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
+        const isValidZoom = getInvisible || W.map.getOLMap().getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
             ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM);
         return isValidUrl && isInState && isVisible && isValidZoom;
     });
@@ -684,7 +680,7 @@ function processFeatures(data, token, gisLayer) {
                         // Coordinates are stored in the attributes.
                         // if (gisLayer.id === 'nc-richmond-co-pts') {
                         //     const pt = new OL.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
-                        //     pt.transform(W.map.displayProjection, W.map.projection);
+                        //     pt.transform(W.map.getOLMap().displayProjection, W.map.getOLMap().projection);
                         //     item.geometry = pt;
                         // }
                         if (item.geometry) {
@@ -785,7 +781,7 @@ function processFeatures(data, token, gisLayer) {
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim()}\n`;
                                 }
-                                if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
+                                if (W.map.getOLMap().getZoom() >= displayLabelsAtZoom || area >= 5000) {
                                     label += gisLayer.labelFields.map(
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim();
@@ -879,7 +875,7 @@ function fetchFeatures() {
     let _layersCleared = false;
 
     // if (layersToFetch.length) {
-    const extent = W.map.getExtent();
+    const extent = W.map.getOLMap().getExtent();
     GM_xmlhttpRequest({
         url: getCountiesUrl(extent),
         method: 'GET',
@@ -991,7 +987,7 @@ function onGisLayerToggleChanged() {
             const newAlertHash = hashString(gisLayer.oneTimeAlert);
             if (lastAlertHash !== newAlertHash) {
                 // alert(`Layer: ${gisLayer.name}\n\nMessage:\n${gisLayer.oneTimeAlert}`);
-                WazeWrap.Alerts.info(GM_info.scrpt.name, `Layer: ${gisLayer.name}<br><br>Message:<br>${gisLayer.oneTimeAlert}`);
+                WazeWrap.Alerts.info(GM_info.script.name, `Layer: ${gisLayer.name}<br><br>Message:<br>${gisLayer.oneTimeAlert}`);
                 _settings.oneTimeAlerts[layerId] = newAlertHash;
                 saveSettingsToStorage();
             }
@@ -1111,7 +1107,7 @@ function initLayer() {
 
     uniqueName = 'wmePyGISLayersDefault';
     existingLayer = W.map.getLayerByUniqueName(uniqueName);
-    if (existingLayer) W.map.removeLayer(existingLayer);
+    if (existingLayer) W.map.getOLMap().removeLayer(existingLayer);
     _mapLayer = new OL.Layer.Vector('PY GIS Layers - Default', {
         uniqueName,
         styleMap: new OL.StyleMap(style)
@@ -1119,7 +1115,7 @@ function initLayer() {
 
     uniqueName = 'wmePyGISLayersRoads';
     existingLayer = W.map.getLayerByUniqueName(uniqueName);
-    if (existingLayer) W.map.removeLayer(existingLayer);
+    if (existingLayer) W.map.getOLMap().removeLayer(existingLayer);
     _roadLayer = new OL.Layer.Vector('PY GIS Layers - Roads', {
         uniqueName,
         styleMap: new OL.StyleMap(ROAD_STYLE)
@@ -1128,8 +1124,8 @@ function initLayer() {
     _mapLayer.setVisibility(_settings.enabled);
     _roadLayer.setVisibility(_settings.enabled);
 
-    W.map.addLayer(_roadLayer);
-    W.map.addLayer(_mapLayer);
+    W.map.getOLMap().addLayer(_roadLayer);
+    W.map.getOLMap().addLayer(_mapLayer);
 } // END InitLayer
 
 function initLayersTab() {
