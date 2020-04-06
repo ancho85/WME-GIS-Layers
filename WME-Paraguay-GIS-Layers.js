@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.11.21.001-py008
+// @version      2019.11.21.001-py009
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -44,6 +44,7 @@
 // @connect gis-gfw.wri.org
 // @connect opengeo.pol.una.py
 // @connect gis.mic.gov.py
+// @connect vigisalud.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -646,9 +647,11 @@ function processFeatures(data, token, gisLayer) {
         logError(`Error in layer "${gisLayer.name}": ${data.error.message}`);
     } else {
         let items = {}
-        if (gisLayer.isFeatureSet == 1){  // 2 is for GeoNode
+        if (gisLayer.isFeatureSet == 1) { // 2 is for GeoNode
             items = data.layers[0].featureSet.features;
-        }else{
+        } else if (gisLayer.isFeatureSet == 3){ // RawPointData
+            items = data
+        } else {
             items = data.features;
         }
         if (!token.cancel) {
@@ -683,6 +686,9 @@ function processFeatures(data, token, gisLayer) {
                         //     pt.transform(W.map.getOLMap().displayProjection, W.map.getOLMap().projection);
                         //     item.geometry = pt;
                         // }
+                        if (!item.geometry && ["RawPointData",].indexOf(gisLayer.serverType) >= 0){
+                            item.geometry = "RawPointData"
+                        }
                         if (item.geometry) {
                             if (item.geometry.x) {
                                 featureGeometry = new OL.Geometry.Point(item.geometry.x + layerOffset.x,
@@ -764,6 +770,10 @@ function processFeatures(data, token, gisLayer) {
                                     featureGeometry = new OL.Geometry.LineString(pointList);
                                 }
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
+                            } else if (["RawPointData",].indexOf(gisLayer.serverType) >= 0){
+                                // assuming lattitude is lat and longitude is lng
+                                featureGeometry = new OL.Geometry.Point(item.lng + layerOffset.x, item.lat + layerOffset.y);
+                                featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                 logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
@@ -775,7 +785,14 @@ function processFeatures(data, token, gisLayer) {
                                 const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                     : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
                                 let label = '';
-                                let attrs = ["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0 ? item.properties : item.attributes;
+                                let attrs = [];
+                                if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+                                    attrs = item.properties;
+                                } else if (["RawPointData"].indexOf(gisLayer.serverType) >= 0) {
+                                    attrs = item;
+                                } else {
+                                    attrs = item.attributes;
+                                }
                                 if (gisLayer.labelHeaderFields) {
                                     label = `${gisLayer.labelHeaderFields.map(
                                         fieldName => attrs[fieldName]
