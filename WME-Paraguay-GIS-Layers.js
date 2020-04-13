@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.11.21.001-py010
+// @version      2019.11.21.001-py011
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -650,14 +650,15 @@ function processFeatures(data, token, gisLayer) {
         if (gisLayer.isFeatureSet){
             // storing result as cache
             sessionStorage.setItem(gisLayer.id, JSON.stringify(data));
-            if (gisLayer.isFeatureSet == 1) { // 2 is for GeoNode
+            if (gisLayer.isFeatureSet == 1) {
                 items = data.layers[0].featureSet.features;
-            }
-            else if (gisLayer.isFeatureSet == 3){ // RawData
-                items = data;
-            }else{
+            } else if (gisLayer.isFeatureSet == 2){ // 2 is for GeoNode
                 items = data.features;
+            } else if (gisLayer.isFeatureSet == 3){ // RawData
+                items = data;
             }
+        } else {
+            items = data.features;
         }
         if (!token.cancel) {
             let error = false;
