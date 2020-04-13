@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.11.21.001-py009
+// @version      2019.11.21.001-py010
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -647,12 +647,17 @@ function processFeatures(data, token, gisLayer) {
         logError(`Error in layer "${gisLayer.name}": ${data.error.message}`);
     } else {
         let items = {}
-        if (gisLayer.isFeatureSet == 1) { // 2 is for GeoNode
-            items = data.layers[0].featureSet.features;
-        } else if (gisLayer.isFeatureSet == 3){ // RawPointData
-            items = data
-        } else {
-            items = data.features;
+        if (gisLayer.isFeatureSet){
+            // storing result as cache
+            sessionStorage.setItem(gisLayer.id, JSON.stringify(data));
+            if (gisLayer.isFeatureSet == 1) { // 2 is for GeoNode
+                items = data.layers[0].featureSet.features;
+            }
+            else if (gisLayer.isFeatureSet == 3){ // RawData
+                items = data;
+            }else{
+                items = data.features;
+            }
         }
         if (!token.cancel) {
             let error = false;
@@ -930,6 +935,14 @@ function fetchFeatures() {
                     logDebug(layersToFetch);
                     layersToFetch.forEach(gisLayer => {
                         const url = getUrl(extent, gisLayer);
+                        if (gisLayer.isFeatureSet){ // trying to retrieve cached data from sessionStorage
+                            let sessionValue = sessionStorage.getItem(gisLayer.id);
+                            if (sessionValue != null){
+                                logDebug(`Processing features of ${gisLayer.id} from storage (RawData)...`);
+                                processFeatures($.parseJSON(sessionValue), {}, gisLayer);
+                                return;
+                            }
+                        }
                         GM_xmlhttpRequest({
                             url,
                             context: _lastToken,
