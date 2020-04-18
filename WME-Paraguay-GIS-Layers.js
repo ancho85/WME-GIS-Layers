@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.11.21.001-py012
+// @version      2019.11.21.001-py013
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -472,7 +472,9 @@ function saveSettingsToStorage() {
 function getUrl(extent, gisLayer) {
     if (gisLayer.spatialReference) {
         const proj = new OL.Projection(`EPSG:${gisLayer.spatialReference}`);
-        extent.transform(W.map.getOLMap().getProjection(), proj);
+        let new_extent = extent.clone();
+        new_extent.transform(W.map.getOLMap().getProjection(), proj); // do not transform original extent
+        extent = new_extent;
     }
     let layerOffset = _settings.getLayerSetting(gisLayer.id, 'offset');
     if (!layerOffset) {
@@ -648,8 +650,10 @@ function processFeatures(data, token, gisLayer) {
     } else {
         let items = {}
         if (gisLayer.isFeatureSet){
-            // storing result as cache
-            sessionStorage.setItem(gisLayer.id, JSON.stringify(data));
+            // storing result as cache if not already there
+            if (!sessionStorage.getItem(gisLayer.id)){
+                sessionStorage.setItem(gisLayer.id, JSON.stringify(data));
+            }
             if (gisLayer.isFeatureSet == 1) {
                 items = data.layers[0].featureSet.features;
             } else if (gisLayer.isFeatureSet == 2){ // 2 is for GeoNode
@@ -943,7 +947,7 @@ function fetchFeatures() {
                         const url = getUrl(extent, gisLayer);
                         if (gisLayer.isFeatureSet){ // trying to retrieve cached data from sessionStorage
                             let sessionValue = sessionStorage.getItem(gisLayer.id);
-                            if (sessionValue != null){
+                            if (sessionValue){
                                 logDebug(`Processing features of ${gisLayer.id} from storage (RawData)...`);
                                 processFeatures($.parseJSON(sessionValue), {}, gisLayer);
                                 return;
