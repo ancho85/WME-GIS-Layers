@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2019.11.21.001-py013
+// @version      2019.11.21.001-py014
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -39,12 +39,12 @@
 // @connect geo-ide.carto.com
 // @connect 201.217.59.143
 // @connect pese.pti.org.py
-// @connect 190.128.154.130
 // @connect www.mapadeasentamientos.org.py
 // @connect gis-gfw.wri.org
 // @connect opengeo.pol.una.py
 // @connect gis.mic.gov.py
 // @connect vigisalud.gov.py
+// @connect mapaescolar.mec.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
 /* global OL */
@@ -781,8 +781,7 @@ function processFeatures(data, token, gisLayer) {
                                 }
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else if (["RawPointData",].indexOf(gisLayer.serverType) >= 0){
-                                // assuming lattitude is lat and longitude is lng
-                                featureGeometry = new OL.Geometry.Point(item.lng + layerOffset.x, item.lat + layerOffset.y);
+                                featureGeometry = new OL.Geometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
@@ -957,6 +956,7 @@ function fetchFeatures() {
                             url,
                             context: _lastToken,
                             method: 'GET',
+                            headers: (gisLayer.customHeaders) ? $.parseJSON(gisLayer.customHeaders): {},
                             onload(res2) {
                                 if (res2.status < 400) { // Handle stupid issue where http 4## is considered success
                                     processFeatures($.parseJSON(res2.responseText), res2.context, gisLayer);
