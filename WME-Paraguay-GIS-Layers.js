@@ -616,7 +616,7 @@ function filterLayerCheckboxes() {
 }
 function convertFeatureGeometry(gisLayer, featureGeometry) {
     if (gisLayer.spatialReference) {
-        const proj = new OL.Projection(`EPSG:${gisLayer.spatialReference}`);
+        const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
         featureGeometry.transform(proj, W.map.getProjection());
     }
     return featureGeometry;
@@ -733,18 +733,18 @@ function processFeatures(data, token, gisLayer) {
                                 featureGeometry.skipDupeCheck = true;
                             } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
                                 if (item.geometry.type == "Point") {
-                                    featureGeometry = new OL.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                    featureGeometry = new OpenLayers.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
                                 } else if (item.geometry.type == "Polygon") {
                                     const rings = [];
                                     item.geometry.coordinates.forEach(ringIn => {
                                         const pnts = [];
                                         for (let i = 0; i < ringIn.length; i++) {
-                                            pnts.push(new OL.Geometry.Point(ringIn[i][0] + layerOffset.x,
+                                            pnts.push(new OpenLayersGeometry.Point(ringIn[i][0] + layerOffset.x,
                                                 ringIn[i][1] + layerOffset.y));
                                         }
-                                        rings.push(new OL.Geometry.LinearRing(pnts));
+                                        rings.push(new OpenLayersGeometry.LinearRing(pnts));
                                     });
-                                    featureGeometry = new OL.Geometry.Polygon(rings);
+                                    featureGeometry = new OpenLayersGeometry.Polygon(rings);
                                     if (gisLayer.areaToPoint) {
                                         featureGeometry = featureGeometry.getCentroid();
                                     } else {
@@ -756,32 +756,32 @@ function processFeatures(data, token, gisLayer) {
                                     for (var i = 0; i < source.length; i += 1) {
                                         const pointList = [];
                                         for (var j = 0; j < source[i].length; j += 1) {
-                                            var point = new OL.Geometry.Point(source[i][j][0], source[i][j][1]);
+                                            var point = new OpenLayersGeometry.Point(source[i][j][0], source[i][j][1]);
                                             pointList.push(point);
                                         }
-                                        var linearRing = new OL.Geometry.LinearRing(pointList);
-                                        var polygon = new OL.Geometry.Polygon([linearRing]);
+                                        var linearRing = new OpenLayersGeometry.LinearRing(pointList);
+                                        var polygon = new OpenLayersGeometry.Polygon([linearRing]);
                                         polygonList.push(polygon);
                                     }
-                                    featureGeometry = new OL.Geometry.MultiPolygon(polygonList);
+                                    featureGeometry = new OpenLayersGeometry.MultiPolygon(polygonList);
                                 } else if (item.geometry.type == "MultiLineString") {
                                     const pointList = [];
                                     item.geometry.coordinates.forEach(path => {
-                                        path.forEach(point => pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x,
+                                        path.forEach(point => pointList.push(new OpenLayersGeometry.Point(point[0] + layerOffset.x,
                                             point[1] + layerOffset.y)));
                                     });
-                                    featureGeometry = new OL.Geometry.LineString(pointList);
+                                    featureGeometry = new OpenLayersGeometry.LineString(pointList);
                                     featureGeometry.skipDupeCheck = true;
                                 } else if (item.geometry.type == "LineString") {
                                     const pointList = [];
                                     item.geometry.coordinates.forEach(point => {
-                                        pointList.push(new OL.Geometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
+                                        pointList.push(new OpenLayersGeometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
                                     });
-                                    featureGeometry = new OL.Geometry.LineString(pointList);
+                                    featureGeometry = new OpenLayersGeometry.LineString(pointList);
                                 }
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else if (["RawPointData",].indexOf(gisLayer.serverType) >= 0){
-                                featureGeometry = new OL.Geometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
+                                featureGeometry = new OpenLayersGeometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
