@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2020.06.01.001-py014
+// @version      2020.06.01.001-py015
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -739,12 +739,12 @@ function processFeatures(data, token, gisLayer) {
                                     item.geometry.coordinates.forEach(ringIn => {
                                         const pnts = [];
                                         for (let i = 0; i < ringIn.length; i++) {
-                                            pnts.push(new OpenLayersGeometry.Point(ringIn[i][0] + layerOffset.x,
+                                            pnts.push(new OpenLayers.Geometry.Point(ringIn[i][0] + layerOffset.x,
                                                 ringIn[i][1] + layerOffset.y));
                                         }
-                                        rings.push(new OpenLayersGeometry.LinearRing(pnts));
+                                        rings.push(new OpenLayers.Geometry.LinearRing(pnts));
                                     });
-                                    featureGeometry = new OpenLayersGeometry.Polygon(rings);
+                                    featureGeometry = new OpenLayers.Geometry.Polygon(rings);
                                     if (gisLayer.areaToPoint) {
                                         featureGeometry = featureGeometry.getCentroid();
                                     } else {
@@ -756,32 +756,32 @@ function processFeatures(data, token, gisLayer) {
                                     for (var i = 0; i < source.length; i += 1) {
                                         const pointList = [];
                                         for (var j = 0; j < source[i].length; j += 1) {
-                                            var point = new OpenLayersGeometry.Point(source[i][j][0], source[i][j][1]);
+                                            var point = new OpenLayers.Geometry.Point(source[i][j][0], source[i][j][1]);
                                             pointList.push(point);
                                         }
-                                        var linearRing = new OpenLayersGeometry.LinearRing(pointList);
-                                        var polygon = new OpenLayersGeometry.Polygon([linearRing]);
+                                        var linearRing = new OpenLayers.Geometry.LinearRing(pointList);
+                                        var polygon = new OpenLayers.Geometry.Polygon([linearRing]);
                                         polygonList.push(polygon);
                                     }
-                                    featureGeometry = new OpenLayersGeometry.MultiPolygon(polygonList);
+                                    featureGeometry = new OpenLayers.Geometry.MultiPolygon(polygonList);
                                 } else if (item.geometry.type == "MultiLineString") {
                                     const pointList = [];
                                     item.geometry.coordinates.forEach(path => {
-                                        path.forEach(point => pointList.push(new OpenLayersGeometry.Point(point[0] + layerOffset.x,
+                                        path.forEach(point => pointList.push(new OpenLayers.Geometry.Point(point[0] + layerOffset.x,
                                             point[1] + layerOffset.y)));
                                     });
-                                    featureGeometry = new OpenLayersGeometry.LineString(pointList);
+                                    featureGeometry = new OpenLayers.Geometry.LineString(pointList);
                                     featureGeometry.skipDupeCheck = true;
                                 } else if (item.geometry.type == "LineString") {
                                     const pointList = [];
                                     item.geometry.coordinates.forEach(point => {
-                                        pointList.push(new OpenLayersGeometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
+                                        pointList.push(new OpenLayers.Geometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
                                     });
-                                    featureGeometry = new OpenLayersGeometry.LineString(pointList);
+                                    featureGeometry = new OpenLayers.Geometry.LineString(pointList);
                                 }
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else if (["RawPointData",].indexOf(gisLayer.serverType) >= 0){
-                                featureGeometry = new OpenLayersGeometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
+                                featureGeometry = new OpenLayers.Geometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
                                 featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                             } else {
                                 logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
