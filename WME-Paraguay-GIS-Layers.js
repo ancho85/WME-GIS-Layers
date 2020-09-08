@@ -39,6 +39,7 @@
 // @connect geo-ide.carto.com
 // @connect 201.217.59.143
 // @connect pese.pti.org.py
+// @connect geo.pti.org.py
 // @connect www.mapadeasentamientos.org.py
 // @connect gis-gfw.wri.org
 // @connect opengeo.pol.una.py
