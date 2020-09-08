@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2020.06.01.001-py015
+// @version      2020.07.27.001-py015
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -48,7 +48,7 @@
 // @connect mapaescolar.mec.gov.py
 // ==/UserScript==
 // This version is for Paraguay Only, modified by ancho85
-/* global OL */
+/* global OpenLayers */
 /* global W */
 /* global GM_info */
 /* global WazeWrap */
@@ -186,13 +186,13 @@ const ROAD_STYLE = new OpenLayers.Style(
         fontWeight: 'bold',
         fontSize: 11
     }, {
-        context: {
-            getOffset() { return -(W.map.getOLMap().getZoom() + 5); },
-            getSmooth() { return ''; },
-            getReadable() { return '1'; },
-            getAlign() { return 'cb'; }
-        }
+    context: {
+        getOffset() { return -(W.map.getZoom() + 5); },
+        getSmooth() { return ''; },
+        getReadable() { return '1'; },
+        getAlign() { return 'cb'; }
     }
+}
 );
 // eslint-disable-next-line no-unused-vars
 const _regexReplace = {
@@ -248,7 +248,7 @@ const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
 const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
 const ALERT_UPDATE = false;
 const SCRIPT_VERSION = GM_info.script.version;
-const SCRIPT_VERSION_CHANGES = ['WME v2.43-40-gf367bffa4 compatibility.'];
+const SCRIPT_VERSION_CHANGES = ['WME map object references.'];
 /* const SCRIPT_VERSION_CHANGES = [
     GM_info.script.name,
     `v${SCRIPT_VERSION}`,
@@ -474,7 +474,7 @@ function getUrl(extent, gisLayer) {
     if (gisLayer.spatialReference) {
         const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
         let new_extent = extent.clone();
-        new_extent.transform(W.map.getOLMap().getProjection(), proj); // do not transform original extent
+        new_extent.transform(W.map.getProjectionObject(), proj); // do not transform original extent
         extent = new_extent;
     }
     let layerOffset = _settings.getLayerSetting(gisLayer.id, 'offset');
@@ -586,7 +586,7 @@ function getFetchableLayers(getInvisible) {
             && _settings.selectedStates.indexOf(gisLayer.state) > -1;
         const isInState = gisLayer.state === 'PRY' || _statesInExtent.indexOf(STATES.toFullName(gisLayer.state)) > -1;
         // Be sure to use hasOwnProperty when checking this, since 0 is a valid value.
-        const isValidZoom = getInvisible || W.map.getOLMap().getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
+        const isValidZoom = getInvisible || W.map.getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
             ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM);
         return isValidUrl && isInState && isVisible && isValidZoom;
     });
@@ -618,7 +618,7 @@ function filterLayerCheckboxes() {
 function convertFeatureGeometry(gisLayer, featureGeometry) {
     if (gisLayer.spatialReference) {
         const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
-        featureGeometry.transform(proj, W.map.getProjection());
+        featureGeometry.transform(proj, W.map.getProjectionObject());
     }
     return featureGeometry;
 }
@@ -663,7 +663,7 @@ function processFeatures(data, token, gisLayer) {
                 items = data;
             }
         } else {
-            items = data.features;
+            items = data.features || [];
         }
         if (!token.cancel) {
             let error = false;
@@ -694,7 +694,7 @@ function processFeatures(data, token, gisLayer) {
                         // Coordinates are stored in the attributes.
                         // if (gisLayer.id === 'nc-richmond-co-pts') {
                         //     const pt = new OpenLayers.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
-                        //     pt.transform(W.map.getOLMap().displayProjection, W.map.getOLMap().projection);
+                        //     pt.transform(W.map.displayProjection, W.map.getProjectionObject());
                         //     item.geometry = pt;
                         // }
                         if (!item.geometry && ["RawPointData",].indexOf(gisLayer.serverType) >= 0){
@@ -808,7 +808,7 @@ function processFeatures(data, token, gisLayer) {
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim()}\n`;
                                 }
-                                if (W.map.getOLMap().getZoom() >= displayLabelsAtZoom || area >= 5000) {
+                                if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
                                     label += gisLayer.labelFields.map(
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim();
@@ -829,6 +829,9 @@ function processFeatures(data, token, gisLayer) {
                                         const m = label.match(/^(?:\d+\s)?(.*)/);
                                         label = m ? m[1].trim() : '';
                                     }
+                                    else if (_settings.addrLabelDisplay === 'none') {
+                                        label = '';
+                                    }
                                 }
                                 const attributes = {
                                     layerID: gisLayer.id,
@@ -836,7 +839,7 @@ function processFeatures(data, token, gisLayer) {
                                 };
                                 if (gisLayer.isFeatureSet){
                                     // avoid drawing features that are not in extent
-                                    const isFeatureInExtent = W.map.getOLMap().getExtent().intersectsBounds(featureGeometry.getBounds());
+                                    const isFeatureInExtent = W.map.getExtent().intersectsBounds(featureGeometry.getBounds());
                                     if (!isFeatureInExtent) return;
                                 }
                                 feature = new OpenLayers.Feature.Vector(featureGeometry, attributes);
@@ -907,7 +910,7 @@ function fetchFeatures() {
     let _layersCleared = false;
 
     // if (layersToFetch.length) {
-    const extent = W.map.getOLMap().getExtent();
+    const extent = W.map.getExtent();
     GM_xmlhttpRequest({
         url: getCountiesUrl(extent),
         method: 'GET',
@@ -1148,7 +1151,7 @@ function initLayer() {
 
     uniqueName = 'wmePyGISLayersDefault';
     existingLayer = W.map.getLayerByUniqueName(uniqueName);
-    if (existingLayer) W.map.getOLMap().removeLayer(existingLayer);
+    if (existingLayer) W.map.removeLayer(existingLayer);
     _mapLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Default', {
         uniqueName,
         styleMap: new OpenLayers.StyleMap(style)
@@ -1156,7 +1159,7 @@ function initLayer() {
 
     uniqueName = 'wmePyGISLayersRoads';
     existingLayer = W.map.getLayerByUniqueName(uniqueName);
-    if (existingLayer) W.map.getOLMap().removeLayer(existingLayer);
+    if (existingLayer) W.map.removeLayer(existingLayer);
     _roadLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Roads', {
         uniqueName,
         styleMap: new OpenLayers.StyleMap(ROAD_STYLE)
@@ -1165,8 +1168,7 @@ function initLayer() {
     _mapLayer.setVisibility(_settings.enabled);
     _roadLayer.setVisibility(_settings.enabled);
 
-    W.map.getOLMap().addLayer(_roadLayer);
-    W.map.getOLMap().addLayer(_mapLayer);
+    W.map.addLayers([_roadLayer, _mapLayer]);
 } // END InitLayer
 
 function initLayersTab() {
@@ -1266,6 +1268,7 @@ function initSettingsTab() {
                     createRadioBtn('py-gisAddrDisplay', 'hn', 'Nro Casa', _settings.addrLabelDisplay === 'hn'),
                     createRadioBtn('py-gisAddrDisplay', 'street', 'Calle', _settings.addrLabelDisplay === 'street'),
                     createRadioBtn('py-gisAddrDisplay', 'all', 'Ambos', _settings.addrLabelDisplay === 'all'),
+                    createRadioBtn('py-gisAddrDisplay', 'none', 'None', _settings.addrLabelDisplay === 'none'),
                     $('<i>', {
                         class: 'waze-tooltip',
                         id: 'py-gisAddrDisplayInfo',
