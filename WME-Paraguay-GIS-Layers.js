@@ -79,7 +79,7 @@ const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
 const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
 const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
-const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852={username}';
+const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226={username}';
 const DEC = s => atob(atob(s));
 const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
 const DEFAULT_STYLE = {
@@ -1357,13 +1357,13 @@ function initGui(firstCall = true) {
         const content = $('<div>').append(
             $('<span>', { style: 'font-size:14px;font-weight:600' }).text('Paraguay GIS Layers'),
             $('<span>', { style: 'font-size:11px;margin-left:10px;color:#aaa;' }).text(GM_info.script.version),
-            // <a href="https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
+            // <a href="https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
             $('<a>', {
                 href: REQUEST_FORM_URL.replace('{username}', user.userName),
                 target: '_blank',
                 style: 'color: #6290b7;font-size: 12px;margin-left: 8px;',
-                title: 'Report broken layers, bugs, request new layers, script features'
-            }).text('Submit a request'),
+                title: 'Reportar capas rotas, bugs, solicitar nuevas capas, nuevas caracteristicas'
+            }).text('Enviar una solicitud'),
             $('<span>', {
                 id: 'py-gis-layers-refresh',
                 class: 'fa fa-refresh',
