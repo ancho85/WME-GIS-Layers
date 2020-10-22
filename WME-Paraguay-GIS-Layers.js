@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2020.07.27.001-py015
+// @version      2020.10.04.001-py015
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -79,6 +79,7 @@ const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won
 // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
 const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
 const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
+const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852={username}';
 const DEC = s => atob(atob(s));
 const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
 const DEFAULT_STYLE = {
@@ -186,13 +187,13 @@ const ROAD_STYLE = new OpenLayers.Style(
         fontWeight: 'bold',
         fontSize: 11
     }, {
-    context: {
-        getOffset() { return -(W.map.getZoom() + 5); },
-        getSmooth() { return ''; },
-        getReadable() { return '1'; },
-        getAlign() { return 'cb'; }
+        context: {
+            getOffset() { return -(W.map.getZoom() + 5); },
+            getSmooth() { return ''; },
+            getReadable() { return '1'; },
+            getAlign() { return 'cb'; }
+        }
     }
-}
 );
 // eslint-disable-next-line no-unused-vars
 const _regexReplace = {
@@ -246,16 +247,9 @@ const DEFAULT_VISIBLE_AT_ZOOM = 6;
 const SETTINGS_STORE_NAME = 'wme_py_gis_layers';
 const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
 const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
-const ALERT_UPDATE = false;
+const ALERT_UPDATE = true;
 const SCRIPT_VERSION = GM_info.script.version;
-const SCRIPT_VERSION_CHANGES = ['WME map object references.'];
-/* const SCRIPT_VERSION_CHANGES = [
-    GM_info.script.name,
-    `v${SCRIPT_VERSION}`,
-    'What\'s New',
-    '------------------------------'
-    // new stuff here
-].join('\n'); */
+const SCRIPT_VERSION_CHANGES = ['Added a link to the GIS-L tab to report broken layers, request new layers, report bugs, etc.'];
 let _mapLayer = null;
 let _roadLayer = null;
 let _settings = {};
@@ -1176,7 +1170,7 @@ function initLayersTab() {
     const states = _.uniq(_gisLayers.map(l => l.state)).filter(st => _settings.selectedStates.indexOf(st) > -1);
 
     $('#panel-py-gis-state-layers').empty().append(
-        $('<div>', { class: 'controls-container' }).css({ 'padding-top': '2px' }).append(
+        $('<div>', { class: 'controls-container' }).css({ 'padding-top': '0px' }).append(
             $('<input>', { type: 'checkbox', id: 'only-show-applicable-py-gis-layers' }).change(
                 onOnlyShowApplicableLayersChanged
             ).prop('checked', _settings.onlyShowApplicableLayers),
@@ -1187,7 +1181,7 @@ function initLayersTab() {
             ? $('<div>').text('Marcar categoria de capas en solapa Configuraciones')
             : states.map(st => $('<fieldset>', {
                 id: `py-gis-layers-for-${st}`,
-                style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before: 0;'
+                style: 'border:1px solid silver;padding:4px;border-radius:4px;-webkit-padding-before: 0;'
             }).append(
                 $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
                     .click(onChevronClick).append(
@@ -1218,7 +1212,7 @@ function initLayersTab() {
                             .map(gisLayer => {
                                 const id = `py-gis-layer-${gisLayer.id}`;
                                 return $('<div>', { class: 'controls-container', id: `${id}-container` })
-                                    .css({ 'padding-top': '2px', display: 'block' })
+                                    .css({ 'padding-top': '0px', display: 'block' })
                                     .append(
                                         $('<input>', { type: 'checkbox', id })
                                             .data('layer-id', gisLayer.id)
@@ -1302,12 +1296,12 @@ function initSettingsTab() {
                         const fullName = STATES.toFullName(st);
                         const id = `py-gis-layer-enable-state-${st}`;
                         return $('<div>', { class: 'controls-container' })
-                            .css({ 'padding-top': '2px', display: 'block' })
+                            .css({ 'padding-top': '0px', display: 'block' })
                             .append(
                                 $('<input>', { type: 'checkbox', id, class: 'py-gis-layers-state-checkbox' })
                                     .change(st, onStateCheckChanged)
                                     .prop('checked', _settings.selectedStates.indexOf(st) > -1),
-                                $('<label>', { for: id }).css({ 'white-space': 'pre-line' }).text(fullName)
+                                $('<label>', { for: id }).css({ 'white-space': 'pre-line', color: '#777' }).text(fullName)
                             );
                     })
                 )
@@ -1326,7 +1320,7 @@ function initSettingsTab() {
                     $('<input>', { type: 'checkbox', id: 'fill-parcels' })
                         .change(onFillParcelsCheckedChanged)
                         .prop('checked', _settings.fillParcels),
-                    $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line' }).text('Llenar parcelas')
+                    $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', color: '#777' }).text('Llenar parcelas')
                 )
             )
     );
@@ -1359,9 +1353,17 @@ function initGui(firstCall = true) {
     initLayer();
 
     if (firstCall) {
+        const { user } = W.loginManager;
         const content = $('<div>').append(
             $('<span>', { style: 'font-size:14px;font-weight:600' }).text('Paraguay GIS Layers'),
             $('<span>', { style: 'font-size:11px;margin-left:10px;color:#aaa;' }).text(GM_info.script.version),
+            // <a href="https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
+            $('<a>', {
+                href: REQUEST_FORM_URL.replace('{username}', user.userName),
+                target: '_blank',
+                style: 'color: #6290b7;font-size: 12px;margin-left: 8px;',
+                title: 'Report broken layers, bugs, request new layers, script features'
+            }).text('Submit a request'),
             $('<span>', {
                 id: 'py-gis-layers-refresh',
                 class: 'fa fa-refresh',
@@ -1384,6 +1386,9 @@ function initGui(firstCall = true) {
         ).html();
 
         new WazeWrap.Interface.Tab('PY GIS-L', content, initTab, null);
+        // Reduce panel div's padding to increase visible text space
+        $('#sidepanel-gis-l').css('padding', '6px');
+
         WazeWrap.Interface.AddLayerCheckbox('Display', 'Paraguay GIS Layers', _settings.enabled, onLayerCheckboxChanged);
         // W.map.events.register('moveend', null, onMapMove);
         WazeWrap.Events.register('moveend', null, onMapMove);
