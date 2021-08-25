@@ -2,12 +2,11 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2020.10.04.001-py015
+// @version      2021.07.27.001-py015
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://greasyfork.org/scripts/381289-jquery-ui-1-11-4-wazedev-custom-min-js/code/jquery-ui-1114wazedevcustomminjs.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_info
 // @license      GNU GPLv3
@@ -82,6 +81,12 @@ const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGR
 const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226={username}';
 const DEC = s => atob(atob(s));
 const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
+const COUNTRIES = {
+    'United States': {
+        sheetId: '1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw',
+        sheetLayerRange: 'layerDefs'
+    }
+};
 const DEFAULT_STYLE = {
     fillColor: '#000',
     pointRadius: 4,
@@ -449,16 +454,19 @@ function loadSettingsFromStorage() {
 }
 
 function saveSettingsToStorage() {
-    let keys = '';
-    const { shortcut } = W.accelerators.Actions.PyGisLayersAddrDisplay;
-    if (shortcut) {
-        if (shortcut.altKey) keys += 'A';
-        if (shortcut.shiftKey) keys += 'S';
-        if (shortcut.ctrlKey) keys += 'C';
-        if (keys.length) keys += '+';
-        if (shortcut.keyCode) keys += shortcut.keyCode;
+    // Check for existance of action first, due to WME beta issue.
+    if (W.accelerators.Actions.GisLayersAddrDisplay) {
+        let keys = '';
+        const { shortcut } = W.accelerators.Actions.GisLayersAddrDisplay;
+        if (shortcut) {
+            if (shortcut.altKey) keys += 'A';
+            if (shortcut.shiftKey) keys += 'S';
+            if (shortcut.ctrlKey) keys += 'C';
+            if (keys.length) keys += '+';
+            if (shortcut.keyCode) keys += shortcut.keyCode;
+        }
+        _settings.toggleHnsOnlyShortcut = keys;
     }
-    _settings.toggleHnsOnlyShortcut = keys;
     _settings.lastVersion = SCRIPT_VERSION;
     localStorage.setItem(SETTINGS_STORE_NAME, JSON.stringify(_settings));
     log('Configuracion guardada');
@@ -688,7 +696,7 @@ function processFeatures(data, token, gisLayer) {
                         // Coordinates are stored in the attributes.
                         // if (gisLayer.id === 'nc-richmond-co-pts') {
                         //     const pt = new OpenLayers.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
-                        //     pt.transform(W.map.displayProjection, W.map.getProjectionObject());
+                        //     pt.transform(W.map.getOLMap().displayProjection, W.map.getProjectionObject());
                         //     item.geometry = pt;
                         // }
                         if (!item.geometry && ["RawPointData",].indexOf(gisLayer.serverType) >= 0){
@@ -1499,8 +1507,12 @@ async function init(firstCall = true) {
     if (firstCall) {
         loadSettingsFromStorage();
         installPathFollowingLabels();
-        new WazeWrap.Interface.Shortcut('PyGisLayersAddrDisplay', 'Activar/desactivar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
-            'layers', 'layersTogglePyGisAddressLabelDisplay', _settings.toggleHnsOnlyShortcut, onAddressDisplayShortcutKey, null).add();
+        // W.accelerators.events.listeners was removed in WME beta, so check for it here before calling WazeWrap.Interface.Shortcut
+        // Hopefully there will be a fix or workaround for this issue.
+        if (W.accelerators.events.listeners) {
+            new WazeWrap.Interface.Shortcut('PyGisLayersAddrDisplay', 'Activar/desactivar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
+                'layers', 'layersTogglePyGisAddressLabelDisplay', _settings.toggleHnsOnlyShortcut, onAddressDisplayShortcutKey, null).add();
+        }
         window.addEventListener('beforeunload', saveSettingsToStorage, false);
         _layerSettingsDialog = new LayerSettingsDialog();
     }
