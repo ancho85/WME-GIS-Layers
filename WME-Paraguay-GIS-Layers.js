@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2021.07.27.001-py017
+// @version      2021.07.27.001-py018
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -193,7 +193,7 @@ const ROAD_STYLE = new OpenLayers.Style(
         fontSize: 11
     }, {
         context: {
-            getOffset() { return -(W.map.getZoom() + 5); },
+            getOffset() { return -(W.map.getZoom() - 12 + 5); },
             getSmooth() { return ''; },
             getReadable() { return '1'; },
             getAlign() { return 'cb'; }
@@ -588,7 +588,7 @@ function getFetchableLayers(getInvisible) {
             && _settings.selectedStates.indexOf(gisLayer.state) > -1;
         const isInState = gisLayer.state === 'PRY' || _statesInExtent.indexOf(STATES.toFullName(gisLayer.state)) > -1;
         // Be sure to use hasOwnProperty when checking this, since 0 is a valid value.
-        const isValidZoom = getInvisible || W.map.getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
+        const isValidZoom = getInvisible || W.map.getZoom() - 12 >= (gisLayer.hasOwnProperty('visibleAtZoom')
             ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM);
         return isValidUrl && isInState && isVisible && isValidZoom;
     });
@@ -810,7 +810,7 @@ function processFeatures(data, token, gisLayer) {
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim()}\n`;
                                 }
-                                if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
+                                if (W.map.getZoom() - 12 >= displayLabelsAtZoom || area >= 5000) {
                                     label += gisLayer.labelFields.map(
                                         fieldName => attrs[fieldName]
                                     ).join(' ').trim();
