@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2021.07.27.001-py015
+// @version      2021.07.27.001-py017
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -1149,21 +1149,24 @@ function initLayer() {
 
     const style = new OpenLayers.Style(DEFAULT_STYLE, { rules });
     let existingLayer;
+    let uniqueName;
     let layerName;
 
+    uniqueName = 'wmePyGISLayersDefault';
     layerName = 'PY GIS Layers - Default';
     existingLayer = W.map.getLayerByName(layerName);
     if (existingLayer) W.map.removeLayer(existingLayer);
     _mapLayer = new OpenLayers.Layer.Vector(layerName, {
-        'wmePyGISLayersDefault',
+        uniqueName,
         styleMap: new OpenLayers.StyleMap(style)
     });
 
+    uniqueName = 'wmePyGISLayersRoads';
     layerName = 'PY GIS Layers - Roads';
     existingLayer = W.map.getLayerByName(layerName);
     if (existingLayer) W.map.removeLayer(existingLayer);
     _roadLayer = new OpenLayers.Layer.Vector(layerName, {
-        'wmePyGISLayersRoads',
+        uniqueName,
         styleMap: new OpenLayers.StyleMap(ROAD_STYLE)
     });
 
