@@ -1149,21 +1149,21 @@ function initLayer() {
 
     const style = new OpenLayers.Style(DEFAULT_STYLE, { rules });
     let existingLayer;
-    let uniqueName;
+    let layerName;
 
-    uniqueName = 'wmePyGISLayersDefault';
-    existingLayer = W.map.getLayerByUniqueName(uniqueName);
+    layerName = 'PY GIS Layers - Default';
+    existingLayer = W.map.getLayerByName(layerName);
     if (existingLayer) W.map.removeLayer(existingLayer);
-    _mapLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Default', {
-        uniqueName,
+    _mapLayer = new OpenLayers.Layer.Vector(layerName, {
+        'wmePyGISLayersDefault',
         styleMap: new OpenLayers.StyleMap(style)
     });
 
-    uniqueName = 'wmePyGISLayersRoads';
-    existingLayer = W.map.getLayerByUniqueName(uniqueName);
+    layerName = 'PY GIS Layers - Roads';
+    existingLayer = W.map.getLayerByName(layerName);
     if (existingLayer) W.map.removeLayer(existingLayer);
-    _roadLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Roads', {
-        uniqueName,
+    _roadLayer = new OpenLayers.Layer.Vector(layerName, {
+        'wmePyGISLayersRoads',
         styleMap: new OpenLayers.StyleMap(ROAD_STYLE)
     });
 
