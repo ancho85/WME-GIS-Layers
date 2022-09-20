@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2021.07.27.001-py018
+// @version      2021.07.27.001-py019
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -737,6 +737,14 @@ function processFeatures(data, token, gisLayer) {
                             } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
                                 if (item.geometry.type == "Point") {
                                     featureGeometry = new OpenLayers.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                } else if (item.geometry.type == "MultiPoint") {
+                                    const rings = [];
+                                    const pnts = [];
+                                    item.geometry.coordinates.forEach(ringIn => {
+                                        pnts.push(new OpenLayers.Geometry.Point(ringIn[0] + layerOffset.x, ringIn[1] + layerOffset.y));
+                                    });
+                                    rings.push(new OpenLayers.Geometry.LinearRing(pnts));
+                                    featureGeometry = new OpenLayers.Geometry.Polygon(rings);
                                 } else if (item.geometry.type == "Polygon") {
                                     const rings = [];
                                     item.geometry.coordinates.forEach(ringIn => {
