@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2021.07.27.001-py019
+// @version      2021.07.27.001-py020
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/?.*$/
@@ -251,7 +251,8 @@ const STATES = {
 const DEFAULT_VISIBLE_AT_ZOOM = 6;
 const SETTINGS_STORE_NAME = 'wme_py_gis_layers';
 const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
-const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
+// const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
+const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
 const ALERT_UPDATE = false;
 const SCRIPT_VERSION = GM_info.script.version;
 const SCRIPT_VERSION_CHANGES = [];
@@ -561,7 +562,7 @@ function getCountiesUrl(extent) {
          spatialReference: { wkid: 102100, latestWkid: 3857 }
      };
     const url = `${COUNTIES_URL2}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
-    return `${url}&outFields=DIST_DESC as BASENAME%2CDPTO as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
+    return `${url}&outFields=NAME as BASENAME%2CCODE as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
         + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
 
     //const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
