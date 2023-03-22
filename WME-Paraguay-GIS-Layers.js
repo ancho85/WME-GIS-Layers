@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.03.21.001-py020
+// @version      2023.03.21.001-py021
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -250,9 +250,9 @@
     const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
     // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
     const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
-    const ALERT_UPDATE = false;
+    const ALERT_UPDATE = true;
     const SCRIPT_VERSION = GM_info.script.version;
-    const SCRIPT_VERSION_CHANGES = [];
+    const SCRIPT_VERSION_CHANGES = ["Manual merge to latest MapOMatic's GIS Layers", "New WME Version supported again"];
     let _mapLayer = null;
     let _roadLayer = null;
     let _settings = {};
@@ -1470,7 +1470,7 @@
         if (firstCall) {
             initTab(true);
 
-            WazeWrap.Interface.AddLayerCheckbox('Display', 'GIS Layers', _settings.enabled, onLayerCheckboxChanged);
+            WazeWrap.Interface.AddLayerCheckbox('Display', 'PY GIS Layers', _settings.enabled, onLayerCheckboxChanged);
             // W.map.events.register('moveend', null, onMapMove);
             WazeWrap.Events.register('moveend', null, onMapMove);
             showScriptInfoAlert();
