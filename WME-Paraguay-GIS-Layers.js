@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.03.21.001-py022
+// @version      2023.03.21.001-py023
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -787,6 +787,12 @@
                                     });
                                     isPolyLine = true;
                                 } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+                                    if (item.geometry.type == "GeometryCollection") {
+                                        let props = item.properties;
+                                        item = item.geometry.geometries[0];
+                                        item.geometry = item;
+                                        item.properties = props;
+                                    }
                                     if (item.geometry.type == "Point") {
                                         featureGeometry = new OpenLayers.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
                                     } else if (item.geometry.type == "MultiPoint") {
