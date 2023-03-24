@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.03.21.001-py023
+// @version      2023.03.21.001-py024
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -794,12 +794,18 @@
                                         item.properties = props;
                                     }
                                     if (item.geometry.type == "Point") {
-                                        featureGeometry = new OpenLayers.Geometry.Point(item.geometry.coordinates[0] + layerOffset.x, item.geometry.coordinates[1] + layerOffset.y);
+                                        featureGeometry = new OpenLayers.Geometry.Point(
+                                            item.geometry.coordinates[0] + layerOffset.x,
+                                            item.geometry.coordinates[1] + layerOffset.y
+                                        );
                                     } else if (item.geometry.type == "MultiPoint") {
                                         const rings = [];
                                         const pnts = [];
                                         item.geometry.coordinates.forEach(ringIn => {
-                                            pnts.push(new OpenLayers.Geometry.Point(ringIn[0] + layerOffset.x, ringIn[1] + layerOffset.y));
+                                            pnts.push(new OpenLayers.Geometry.Point(
+                                                ringIn[0] + layerOffset.x,
+                                                ringIn[1] + layerOffset.y
+                                            ));
                                         });
                                         rings.push(new OpenLayers.Geometry.LinearRing(pnts));
                                         featureGeometry = new OpenLayers.Geometry.Polygon(rings);
@@ -808,8 +814,10 @@
                                         item.geometry.coordinates.forEach(ringIn => {
                                             const pnts = [];
                                             for (let i = 0; i < ringIn.length; i++) {
-                                                pnts.push(new OpenLayers.Geometry.Point(ringIn[i][0] + layerOffset.x,
-                                                    ringIn[i][1] + layerOffset.y));
+                                                pnts.push(new OpenLayers.Geometry.Point(
+                                                    ringIn[i][0] + layerOffset.x,
+                                                    ringIn[i][1] + layerOffset.y
+                                                ));
                                             }
                                             rings.push(new OpenLayers.Geometry.LinearRing(pnts));
                                         });
@@ -825,7 +833,10 @@
                                         for (var i = 0; i < source.length; i += 1) {
                                             const pointList = [];
                                             for (var j = 0; j < source[i].length; j += 1) {
-                                                var point = new OpenLayers.Geometry.Point(source[i][j][0], source[i][j][1]);
+                                                var point = new OpenLayers.Geometry.Point(
+                                                    source[i][j][0],
+                                                    source[i][j][1]
+                                                );
                                                 pointList.push(point);
                                             }
                                             var linearRing = new OpenLayers.Geometry.LinearRing(pointList);
@@ -836,15 +847,20 @@
                                     } else if (item.geometry.type == "MultiLineString") {
                                         const pointList = [];
                                         item.geometry.coordinates.forEach(path => {
-                                            path.forEach(point => pointList.push(new OpenLayers.Geometry.Point(point[0] + layerOffset.x,
-                                                point[1] + layerOffset.y)));
+                                            path.forEach(point => pointList.push(new OpenLayers.Geometry.Point(
+                                                point[0] + layerOffset.x,
+                                                point[1] + layerOffset.y
+                                            )));
                                         });
                                         featureGeometry = new OpenLayers.Geometry.LineString(pointList);
                                         featureGeometry.skipDupeCheck = true;
                                     } else if (item.geometry.type == "LineString") {
                                         const pointList = [];
                                         item.geometry.coordinates.forEach(point => {
-                                            pointList.push(new OpenLayers.Geometry.Point(point[0] + layerOffset.x, point[1] + layerOffset.y));
+                                            pointList.push(new OpenLayers.Geometry.Point(
+                                                point[0] + layerOffset.x,
+                                                point[1] + layerOffset.y
+                                            ));
                                         });
                                         featureGeometry = new OpenLayers.Geometry.LineString(pointList);
                                     }
