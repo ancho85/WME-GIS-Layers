@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.03.21.001-py025
+// @version      2023.03.21.001-py026
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -50,6 +50,7 @@
 // @connect mapaescolar.mec.gov.py
 // @connect apps.mades.gov.py
 // @connect www.mopc.gov.py
+// @connect analisis.stp.gov.py
 // ==/UserScript==
 
 // This version is for Paraguay Only, modified by ancho85
