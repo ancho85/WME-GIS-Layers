@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME Paraguay GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.03.21.001-py026
+// @version      2023.05.21.001-py026
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -11,6 +11,7 @@
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.7.3/turf.min.js
 // @grant        GM_xmlhttpRequest
+// @connect      greasyfork.org
 // @grant        GM_info
 // @license      GNU GPLv3
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
@@ -253,9 +254,11 @@
     const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
     // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
     const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
-    const ALERT_UPDATE = true;
+    const ALERT_UPDATE = false;
+    const SCRIPT_NAME = GM_info.script.name;
     const SCRIPT_VERSION = GM_info.script.version;
-    const SCRIPT_VERSION_CHANGES = ["Manual merge to latest MapOMatic's GIS Layers", "New WME Version supported again"];
+    const DOWNLOAD_URL = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
+    const SCRIPT_VERSION_CHANGES = [];
     let _mapLayer = null;
     let _roadLayer = null;
     let _settings = {};
@@ -264,8 +267,8 @@
 
     const DEBUG = true;
     //function log(message) { console.log('PY GIS Layers:', message); }
-    function logError(message) { console.error('PY GIS Layers:', message); }
-    function logDebug(message) { if (DEBUG) console.debug('PY GIS Layers:', message); }
+    function logError(message) { console.error(`${SCRIPT_NAME}:`, message); }
+    function logDebug(message) { if (DEBUG) console.debug(`${SCRIPT_NAME}:`, message); }
     // function logWarning(message) { console.warn('PY GIS Layers:', message); }
 
     let _layerSettingsDialog;
@@ -1600,9 +1603,20 @@
         return result;
     }
 
+    function loadScriptUpdateMonitor() {
+        try {
+            const updateMonitor = new WazeWrap.Alerts.ScriptUpdateMonitor(SCRIPT_NAME, SCRIPT_VERSION, DOWNLOAD_URL, GM_xmlhttpRequest);
+            updateMonitor.start();
+        } catch (ex) {
+            // Report, but don't stop if ScriptUpdateMonitor fails.
+            logError(ex);
+        }
+    }
+
     async function init(firstCall = true) {
         _gisLayers = [];
         if (firstCall) {
+            loadScriptUpdateMonitor();
             loadSettingsFromStorage();
             installPathFollowingLabels();
             // W.accelerators.events.listeners was removed in WME beta, so check for it here before calling WazeWrap.Interface.Shortcut
