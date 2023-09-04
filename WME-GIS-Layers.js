@@ -259,7 +259,7 @@
     const SCRIPT_NAME = GM_info.script.name;
     const SCRIPT_VERSION = GM_info.script.version;
     const DOWNLOAD_URL = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
-    const SCRIPT_VERSION_CHANGES = [];
+    const SCRIPT_VERSION_CHANGES = ["Actualizado para ultima version (2.180) del WME", ];
     let _mapLayer = null;
     let _roadLayer = null;
     let _settings = {};
@@ -1475,7 +1475,7 @@
                 $('<span>', { title: 'PY GIS Layers' }).text('PY GIS-L')
             ).html();
 
-            const { tabLabel, tabPane } = W.userscripts.registerSidebarTab(name);
+            const { tabLabel, tabPane } = W.userscripts.registerSidebarTab('PY GIS-L');
             tabLabel.innerHTML = labelText;
             tabPane.innerHTML = content;
             // Fix tab content div spacing.
