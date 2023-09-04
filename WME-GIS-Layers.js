@@ -250,7 +250,7 @@
         fromId(id) { return this._states.find(a => a[2] === id); }
     };
     const DEFAULT_VISIBLE_AT_ZOOM = 6;
-    const SETTINGS_STORE_NAME = 'wme_py_gis_layers';
+    const SETTINGS_STORE_NAME = 'wme_gis_layers';
     const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
     // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
     const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
@@ -302,13 +302,13 @@
                 $('<div>', { style: 'border-radius: 5px; width: 100%; padding: 4px; background-color:#d6e6f3; display:inline-block; margin-right:5px;' }).append(
                     this._$resetButton,
                     $('<input>', {
-                        type: 'radio', id: 'gisPyLayerShiftAmt1', name: 'gisPyLayerShiftAmt', value: '1', checked: 'checked'
+                        type: 'radio', id: 'gisLayerShiftAmt1', name: 'gisLayerShiftAmt', value: '1', checked: 'checked'
                     }),
-                    $('<label>', { for: 'gisPyLayerShiftAmt1' }).text('1m'),
+                    $('<label>', { for: 'gisLayerShiftAmt1' }).text('1m'),
                     $('<input>', {
-                        type: 'radio', id: 'gisPyLayerShiftAmt10', name: 'gisPyLayerShiftAmt', value: '10', style: 'margin-left: 6px'
+                        type: 'radio', id: 'gisLayerShiftAmt10', name: 'gisLayerShiftAmt', value: '10', style: 'margin-left: 6px'
                     }),
-                    $('<label>', { for: 'gisPyLayerShiftAmt10' }).text('10m'),
+                    $('<label>', { for: 'gisLayerShiftAmt10' }).text('10m'),
                     $('<div>', { style: 'padding: 4px' }).append(
                         $('<table>', { style: 'table-layout:fixed; width:60px; height:84px; margin-left:auto;margin-right:auto;' }).append(
                             $('<tr>', { style: 'width: 20px; height: 28px;' }).append(
@@ -364,7 +364,7 @@
 
         // eslint-disable-next-line class-methods-use-this
         getShiftAmount() {
-            return $('input[name=gisPyLayerShiftAmt]:checked').val();
+            return $('input[name=gisLayerShiftAmt]:checked').val();
         }
 
         show() {
@@ -607,10 +607,10 @@
         const statesToHide = STATES.toAbbrArray();
 
         _gisLayers.forEach(gisLayer => {
-            const id = `#py-gis-layer-${gisLayer.id}-container`;
+            const id = `#gis-layer-${gisLayer.id}-container`;
             if (!_settings.onlyShowApplicableLayers || applicableLayers.includes(gisLayer)) {
                 $(id).show();
-                $(`#py-gis-layers-for-${gisLayer.state}`).show();
+                $(`#gis-layers-for-${gisLayer.state}`).show();
                 const idx = statesToHide.indexOf(gisLayer.state);
                 if (idx > -1) statesToHide.splice(idx, 1);
             } else {
@@ -618,7 +618,7 @@
             }
         });
         if (_settings.onlyShowApplicableLayers) {
-            statesToHide.forEach(st => $(`#py-gis-layers-for-${st}`).hide());
+            statesToHide.forEach(st => $(`#gis-layers-for-${st}`).hide());
         }
     }
     function convertFeatureGeometry(gisLayer, featureGeometry) {
@@ -984,7 +984,7 @@
             layer.addFeatures(features);
 
             if (features.length) {
-                $(`label[for="py-gis-layer-${gisLayer.id}"]`).css({ color: '#00a009' });
+                $(`label[for="gis-layer-${gisLayer.id}"]`).css({ color: '#00a009' });
             }
         }
     } // END processFeatures()
@@ -998,7 +998,7 @@
         }
         _lastToken.cancel = true;
         _lastToken = { cancel: false, features: [], layersProcessed: 0 };
-        $('.py-gis-state-layer-label').css({ color: '#777' });
+        $('.gis-state-layer-label').css({ color: '#777' });
 
         let _layersCleared = false;
 
@@ -1061,13 +1061,13 @@
                                     } else {
                                         logDebug(`HTTP request error: ${JSON.stringify(res2)}`);
                                         logError(`Could not fetch layer "${gisLayer.id}". Request returned ${res2.status}`);
-                                        $(`label[for="py-gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
+                                        $(`label[for="gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
                                     }
                                 },
                                 onerror(res3) {
                                     logDebug(`xmlhttpRequest error:${JSON.stringify(res3)}`);
                                     logError(`Could not fetch layer "${gisLayer.id}". An error was thrown.`);
-                                    $(`label[for="py-gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
+                                    $(`label[for="gis-layer-${gisLayer.id}"]`).css({ color: '#ff0000' });
                                 }
                             });
                         });
@@ -1109,9 +1109,9 @@
         _mapLayer.setVisibility(value);
         _roadLayer.setVisibility(value);
         const color = value ? '#00bd00' : '#ccc';
-        $('span#py-gis-layers-power-btn').css({ color });
+        $('span#gis-layers-power-btn').css({ color });
         if (value) fetchFeatures();
-        $('#layer-switcher-item_py_gis_layers').prop('checked', value);
+        $('#layer-switcher-item_gis_layers').prop('checked', value);
     }
 
     function onGisLayerToggleChanged() {
@@ -1180,7 +1180,7 @@
     }
 
     function onRefreshLayersClick() {
-        const $btn = $('#py-gis-layers-refresh');
+        const $btn = $('#gis-layers-refresh');
         if (!$btn.hasClass('fa-spin')) {
             $btn.css({ cursor: 'auto' });
             $btn.addClass('fa-spin');
@@ -1220,10 +1220,10 @@
     }
 
     function onAddressDisplayShortcutKey() {
-        if (!$('#py-gisAddrDisplay-hn').is(':checked')) {
-            $('#py-gisAddrDisplay-hn').click();
+        if (!$('#gisAddrDisplay-hn').is(':checked')) {
+            $('#gisAddrDisplay-hn').click();
         } else {
-            $('#py-gisAddrDisplay-all').click();
+            $('#gisAddrDisplay-all').click();
         }
     }
 
@@ -1244,7 +1244,7 @@
         let uniqueName;
         let layerName;
 
-        uniqueName = 'wmePyGISLayersDefault';
+        uniqueName = 'wmeGISLayersDefault';
         layerName = 'PY GIS Layers - Default';
         existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't working.
         if (existingLayer) W.map.removeLayer(existingLayer);
@@ -1253,7 +1253,7 @@
             styleMap: new OpenLayers.StyleMap(style)
         });
 
-        uniqueName = 'wmePyGISLayersRoads';
+        uniqueName = 'wmeGISLayersRoads';
         layerName = 'PY GIS Layers - Roads';
         existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't wworking.
         if (existingLayer) W.map.removeLayer(existingLayer);
@@ -1272,18 +1272,18 @@
         const user = W.loginManager.user.userName.toLowerCase();
         const states = _.uniq(_gisLayers.map(l => l.state)).filter(st => _settings.selectedStates.includes(st));
 
-        $('#panel-py-gis-state-layers').empty().append(
+        $('#panel-gis-state-layers').empty().append(
             $('<div>', { class: 'controls-container' }).css({ 'padding-top': '0px' }).append(
-                $('<input>', { type: 'checkbox', id: 'only-show-applicable-py-gis-layers' }).change(
+                $('<input>', { type: 'checkbox', id: 'only-show-applicable-gis-layers' }).change(
                     onOnlyShowApplicableLayersChanged
                 ).prop('checked', _settings.onlyShowApplicableLayers),
-                $('<label>', { for: 'only-show-applicable-py-gis-layers' })
+                $('<label>', { for: 'only-show-applicable-gis-layers' })
                     .css({ 'white-space': 'pre-line' }).text('Solo mostrar capas aplicables')
             ),
-            $('.py-gis-layers-state-checkbox:checked').length === 0
+            $('.gis-layers-state-checkbox:checked').length === 0
                 ? $('<div>').text('Marcar categoria de capas en solapa Configuraciones')
                 : states.map(st => $('<fieldset>', {
-                    id: `py-gis-layers-for-${st}`,
+                    id: `gis-layers-for-${st}`,
                     style: 'border:1px solid silver;padding:4px;border-radius:4px;-webkit-padding-before: 0;'
                 }).append(
                     $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
@@ -1313,7 +1313,7 @@
                             _gisLayers.filter(l => (l.state === st && (!PRIVATE_LAYERS.hasOwnProperty(l.id)
                                 || PRIVATE_LAYERS[l.id].includes(user))))
                                 .map(gisLayer => {
-                                    const id = `py-gis-layer-${gisLayer.id}`;
+                                    const id = `gis-layer-${gisLayer.id}`;
                                     return $('<div>', { class: 'controls-container', id: `${id}-container` })
                                         .css({ 'padding-top': '0px', display: 'block' })
                                         .append(
@@ -1321,7 +1321,7 @@
                                                 .data('layer-id', gisLayer.id)
                                                 .change(onGisLayerToggleChanged)
                                                 .prop('checked', _settings.visibleLayers.includes(gisLayer.id)),
-                                            $('<label>', { for: id, class: 'py-gis-state-layer-label' })
+                                            $('<label>', { for: id, class: 'gis-state-layer-label' })
                                                 .css({ 'white-space': 'pre-line' })
                                                 .text(`${gisLayer.name}${gisLayer.restrictTo ? ' *' : ''}`)
                                                 .attr('title', gisLayer.restrictTo ? `Restringido a: ${gisLayer.restrictTo}` : '')
@@ -1350,7 +1350,7 @@
                 paddingLeft: '15px', marginRight: '4px'
             })];
         };
-        $('#panel-py-gis-layers-settings').empty().append(
+        $('#panel-gis-layers-settings').empty().append(
             $('<fieldset>', {
                 style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before: 0;margin-top:-8px;'
             }).append(
@@ -1362,13 +1362,13 @@
                 $('<div>', { id: 'labelSettings' }).append(
                     $('<div>', { class: 'controls-container' }).css({ 'padding-top': '2px' }).append(
                         $('<label>', { style: 'font-weight:normal;' }).text('Addresses:'),
-                        createRadioBtn('py-gisAddrDisplay', 'hn', 'Nro Casa', _settings.addrLabelDisplay === 'hn'),
-                        createRadioBtn('py-gisAddrDisplay', 'street', 'Calle', _settings.addrLabelDisplay === 'street'),
-                        createRadioBtn('py-gisAddrDisplay', 'all', 'Ambos', _settings.addrLabelDisplay === 'all'),
-                        createRadioBtn('py-gisAddrDisplay', 'none', 'None', _settings.addrLabelDisplay === 'none'),
+                        createRadioBtn('gisAddrDisplay', 'hn', 'Nro Casa', _settings.addrLabelDisplay === 'hn'),
+                        createRadioBtn('gisAddrDisplay', 'street', 'Calle', _settings.addrLabelDisplay === 'street'),
+                        createRadioBtn('gisAddrDisplay', 'all', 'Ambos', _settings.addrLabelDisplay === 'all'),
+                        createRadioBtn('gisAddrDisplay', 'none', 'None', _settings.addrLabelDisplay === 'none'),
                         $('<i>', {
                             class: 'waze-tooltip',
-                            id: 'py-gisAddrDisplayInfo',
+                            id: 'gisAddrDisplayInfo',
                             'data-toggle': 'tooltip',
                             style: 'margin-left:8px; font-size:12px',
                             'data-placement': 'bottom',
@@ -1397,11 +1397,11 @@
                     $('<div>', { class: 'controls-container', style: 'padding-top:0px;' }).append(
                         states.map(st => {
                             const fullName = STATES.toFullName(st);
-                            const id = `py-gis-layer-enable-state-${st}`;
+                            const id = `gis-layer-enable-state-${st}`;
                             return $('<div>', { class: 'controls-container' })
                                 .css({ 'padding-top': '0px', display: 'block' })
                                 .append(
-                                    $('<input>', { type: 'checkbox', id, class: 'py-gis-layers-state-checkbox' })
+                                    $('<input>', { type: 'checkbox', id, class: 'gis-layers-state-checkbox' })
                                         .change(st, onStateCheckChanged)
                                         .prop('checked', _settings.selectedStates.includes(st)),
                                     $('<label>', { for: id }).css({ 'white-space': 'pre-line', color: '#777' }).text(fullName)
@@ -1411,7 +1411,7 @@
                 )
             )
         );
-        $('#panel-py-gis-layers-settings').append(
+        $('#panel-gis-layers-settings').append(
             $('<fieldset>', { style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before: 0;' })
                 .append(
                     $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
@@ -1427,7 +1427,7 @@
                     )
                 )
         );
-        $('input[name=py-gisAddrDisplay]').change(onGisAddrDisplayChange);
+        $('input[name=gisAddrDisplay]').change(onGisAddrDisplayChange);
     }
 
     async function initTab(firstCall = true) {
@@ -1444,23 +1444,23 @@
                     title: 'Reportar capas rotas, bugs, solicitar nuevas capas, nuevas caracteristicas'
                 }).text('Enviar una solicitud'),
                 $('<span>', {
-                    id: 'py-gis-layers-refresh',
+                    id: 'gis-layers-refresh',
                     class: 'fa fa-refresh',
                     style: 'float: right;',
                     'data-toggle': 'tooltip',
                     title: 'Obtener nuevas informaciones del planilla primaria y refrescar todas las capas.'
                 }),
                 '<ul class="nav nav-tabs">'
-                + '<li class="active"><a data-toggle="tab" href="#panel-py-gis-state-layers" aria-expanded="true">'
+                + '<li class="active"><a data-toggle="tab" href="#panel-gis-state-layers" aria-expanded="true">'
                 + 'Capas'
                 + '</a></li>'
-                + '<li><a data-toggle="tab" href="#panel-py-gis-layers-settings" aria-expanded="true">'
+                + '<li><a data-toggle="tab" href="#panel-gis-layers-settings" aria-expanded="true">'
                 + 'Configuracion'
                 + '</a></li> '
                 + '</ul>',
                 $('<div>', { class: 'tab-content', style: 'padding:8px;padding-top:2px' }).append(
-                    $('<div>', { class: 'tab-pane active', id: 'panel-py-gis-state-layers', style: 'padding: 4px 0px 0px 0px; width: auto' }),
-                    $('<div>', { class: 'tab-pane', id: 'panel-py-gis-layers-settings', style: 'padding: 4px 0px 0px 0px; width: auto' })
+                    $('<div>', { class: 'tab-pane active', id: 'panel-gis-state-layers', style: 'padding: 4px 0px 0px 0px; width: auto' }),
+                    $('<div>', { class: 'tab-pane', id: 'panel-gis-layers-settings', style: 'padding: 4px 0px 0px 0px; width: auto' })
                 )
             ).html();
 
@@ -1468,7 +1468,7 @@
             const labelText = $('<div>').append(
                 $('<span>', {
                     class: 'fa fa-power-off',
-                    id: 'py-gis-layers-power-btn',
+                    id: 'gis-layers-power-btn',
                     style: `margin-right: 5px;cursor: pointer;color: ${powerButtonColor};font-size: 13px;`,
                     title: 'Activar/Desactivar Paraguay GIS Layers'
                 }),
@@ -1482,11 +1482,11 @@
             $(tabPane).parent().css({ width: 'auto', padding: '6px' });
 
             await W.userscripts.waitForElementConnected(tabPane);
-            $('#py-gis-layers-power-btn').click(evt => {
+            $('#gis-layers-power-btn').click(evt => {
                 evt.stopPropagation();
                 setEnabled(!_settings.enabled);
             });
-            $('#py-gis-layers-refresh').click(onRefreshLayersClick);
+            $('#gis-layers-refresh').click(onRefreshLayersClick);
         }
         initSettingsTab();
         initLayersTab();
@@ -1623,10 +1623,10 @@
             // Hopefully there will be a fix or workaround for this issue.
             if (W.accelerators.events.listeners) {
                 new WazeWrap.Interface.Shortcut(
-                    'PyGisLayersAddrDisplay',
+                    'GisLayersAddrDisplay',
                     'Activar/desactivar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
                     'layers',
-                    'layersTogglePyGisAddressLabelDisplay',
+                    'layersToggleGisAddressLabelDisplay',
                     _settings.toggleHnsOnlyShortcut,
                     onAddressDisplayShortcutKey,
                     null
@@ -1661,7 +1661,7 @@
             logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
             initGui(firstCall);
             fetchFeatures();
-            $('#py-gis-layers-refresh').removeClass('fa-spin').css({ cursor: 'pointer' });
+            $('#gis-layers-refresh').removeClass('fa-spin').css({ cursor: 'pointer' });
             logDebug('Inicializado.');
         } catch (err) {
             logError(err);
