@@ -17,7 +17,7 @@
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // @connect      *
 // @connect www.asuncion.gov.py
-// @connect geo.stp.gov.py
+// @connect analisis.stp.gov.py
 // @connect www.arcgis.com
 // @connect services1.arcgis.com
 // @connect services2.arcgis.com
@@ -51,7 +51,6 @@
 // @connect mapaescolar.mec.gov.py
 // @connect apps.mades.gov.py
 // @connect www.mopc.gov.py
-// @connect analisis.stp.gov.py
 // ==/UserScript==
 
 // This version is for Paraguay Only, modified by ancho85
@@ -252,14 +251,14 @@
     };
     const DEFAULT_VISIBLE_AT_ZOOM = 6;
     const SETTINGS_STORE_NAME = 'wme_gis_layers';
-    const COUNTIES_URL = 'http://geo.stp.gov.py:80/user/dgeec/api/v2/';
+    const COUNTIES_URL = 'https://analisis.stp.gov.py:443/user/ine/api/v2/';
     // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
     const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
     const ALERT_UPDATE = false;
     const SCRIPT_NAME = GM_info.script.name;
     const SCRIPT_VERSION = GM_info.script.version;
     const DOWNLOAD_URL = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
-    const SCRIPT_VERSION_CHANGES = ["Actualizado para ultima version (2.180) del WME", ];
+    const SCRIPT_VERSION_CHANGES = ["Actualizado para ultima version (2.180) del WME", "Hay que volver a activar la Categoria de Capas tus preferencias"];
     let _mapLayer = null;
     let _roadLayer = null;
     let _settings = {};
@@ -567,20 +566,20 @@
          };
         const url = `${COUNTIES_URL2}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
         return `${url}&outFields=NAME as BASENAME%2CCODE as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
-            + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
+             + '&geometryType=esriGeometryEnvelope&inSR=102100&outSR=3857&f=json';
 
-        //const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM dgeec.paraguay_2019_distritos `
-        //var gps1 = WazeWrap.Geometry.ConvertTo4326(extent.left, extent.top);
-        //var gps2 = WazeWrap.Geometry.ConvertTo4326(extent.right, extent.bottom);
-        //return `${url} WHERE ST_Intersects(
-        //    ST_SetSRID(
-        //        ST_MakeBox2D(
-        //            ST_Point(${gps1.lon},${gps1.lat}),
-        //            ST_Point(${gps2.lon},${gps2.lat})
-        //        ),
-        //        4326
-        //    ),
-        //    the_geom)`;
+        /*const url = `${COUNTIES_URL}sql?q=SELECT dist_desc_ AS BASENAME, dpto AS STATE FROM ine.paraguay_2019_distritos `;
+        var gps1 = WazeWrap.Geometry.ConvertTo4326(extent.left, extent.top);
+        var gps2 = WazeWrap.Geometry.ConvertTo4326(extent.right, extent.bottom);
+        return `${url} WHERE ST_Intersects(
+           ST_SetSRID(
+               ST_MakeBox2D(
+                   ST_Point(${gps1.lon},${gps1.lat}),
+                   ST_Point(${gps2.lon},${gps2.lat})
+               ),
+               4326
+           ),
+           the_geom)`;*/
     }
 
     let _countiesInExtent = [];
@@ -1269,7 +1268,7 @@
     } // END InitLayer
 
     function initLayersTab() {
-        const user = W.loginManager.user.userName.toLowerCase();
+        const user = W.loginManager.user.attributes.userName.toLowerCase();
         const states = _.uniq(_gisLayers.map(l => l.state)).filter(st => _settings.selectedStates.includes(st));
 
         $('#panel-gis-state-layers').empty().append(
@@ -1511,7 +1510,7 @@
     async function loadSpreadsheetAsync() {
         let data;
         try {
-            data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?${DEC(API_KEY)}`);
+            data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?key=${DEC(API_KEY)}`);
         } catch (err) {
             throw new Error(`Spreadsheet call failed. (${err.status}: ${err.statusText})`);
         }
