@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable brace-style, curly, nonblock-statement-body-position, no-template-curly-in-string, func-names */
 // ==UserScript==
-// @name         WME Paraguay GIS Layers
+// @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.05.21.001-py026
+// @version      2023.08.02.002-py026
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -63,6 +63,7 @@
 
 (function main() {
     'use strict';
+
     // **************************************************************************************************************
     // IMPORTANT: Update this when releasing a new version of script that includes changes to the spreadsheet format
     //            that may cause old code to break.  This # should match the version listed in the spreadsheet
@@ -621,6 +622,7 @@
             statesToHide.forEach(st => $(`#gis-layers-for-${st}`).hide());
         }
     }
+
     function convertFeatureGeometry(gisLayer, featureGeometry) {
         if (gisLayer.spatialReference) {
             const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
@@ -643,6 +645,7 @@
                 }
             }
     }
+
     const ROAD_ABBR = [
         [/\bAVDA./gi, 'Av.'], [/\bAVENIDA/gi, 'Av.'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
         [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
@@ -957,25 +960,25 @@
                         }
                     }
                 }
-                labels = _.uniq(labels);
-                if (labels.length > 1) {
-                    labels.forEach((label, idx) => {
-                        label = label.replace(/\n/g, ' ').replace(/\s{2,}/, ' ').replace(/\bUNIT\s.{1,5}$/i, '').trim();
-                        ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
-                        labels[idx] = label;
-                    });
                     labels = _.uniq(labels);
-                    labels.sort();
-                    if (labels.length > 12) {
-                        const len = labels.length;
-                        labels = labels.slice(0, 10);
-                        labels.push(`(${len - 10} more...)`);
-                    }
-                    f1.attributes.label = _.uniq(labels).join('\n');
-                } else {
-                    let { label } = f1.attributes;
-                    ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
-                    f1.attributes.label = label;
+                    if (labels.length > 1) {
+                        labels.forEach((label, idx) => {
+                            label = label.replace(/\n/g, ' ').replace(/\s{2,}/, ' ').replace(/\bUNIT\s.{1,5}$/i, '').trim();
+                            ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
+                            labels[idx] = label;
+                        });
+                        labels = _.uniq(labels);
+                        labels.sort();
+                        if (labels.length > 12) {
+                            const len = labels.length;
+                            labels = labels.slice(0, 10);
+                            labels.push(`(${len - 10} more...)`);
+                        }
+                        f1.attributes.label = _.uniq(labels).join('\n');
+                    } else {
+                        let { label } = f1.attributes;
+                        ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
+                        f1.attributes.label = label;
                 }
             }
 
@@ -1027,7 +1030,7 @@
 
                             // Remove features of any layers that won't be mapped.
                             _gisLayers.forEach(gisLayer => {
-                                if (layersToFetch.indexOf(gisLayer) === -1) {
+                                if (!layersToFetch.includes(gisLayer)) {
                                     _mapLayer.removeFeatures(_mapLayer.getFeaturesByAttribute('layerID', gisLayer.id));
                                     _roadLayer.removeFeatures(_roadLayer.getFeaturesByAttribute('layerID', gisLayer.id));
                                 }
@@ -1242,22 +1245,19 @@
         const style = new OpenLayers.Style(DEFAULT_STYLE, { rules });
         let existingLayer;
         let uniqueName;
-        let layerName;
 
         uniqueName = 'wmeGISLayersDefault';
-        layerName = 'PY GIS Layers - Default';
         existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't working.
         if (existingLayer) W.map.removeLayer(existingLayer);
-        _mapLayer = new OpenLayers.Layer.Vector(layerName, {
+        _mapLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Default', {
             uniqueName,
             styleMap: new OpenLayers.StyleMap(style)
         });
 
         uniqueName = 'wmeGISLayersRoads';
-        layerName = 'PY GIS Layers - Roads';
         existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't wworking.
         if (existingLayer) W.map.removeLayer(existingLayer);
-        _roadLayer = new OpenLayers.Layer.Vector(layerName, {
+        _roadLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Roads', {
             uniqueName,
             styleMap: new OpenLayers.StyleMap(ROAD_STYLE)
         });
@@ -1488,6 +1488,7 @@
             });
             $('#gis-layers-refresh').click(onRefreshLayersClick);
         }
+
         initSettingsTab();
         initLayersTab();
     }
@@ -1510,7 +1511,7 @@
     async function loadSpreadsheetAsync() {
         let data;
         try {
-            data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?key=${DEC(API_KEY)}`);
+            data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?${DEC(API_KEY)}`);
         } catch (err) {
             throw new Error(`Spreadsheet call failed. (${err.status}: ${err.statusText})`);
         }
@@ -1574,12 +1575,12 @@
                                 layerDef.notAllowed = !values.some(entry => {
                                     const rankMatch = entry.match(/^r(\d)(\+am)?$/);
                                     if (rankMatch) {
-                                        if (rankMatch[1] <= (user.rank + 1) && (!rankMatch[2] || user.isAreaManager)) {
+                                        if (rankMatch[1] <= (user.attributes.rank + 1) && (!rankMatch[2] || user.attributes.isAreaManager)) {
                                             return true;
                                         }
-                                    } else if (entry === 'am' && user.isAreaManager) {
+                                    } else if (entry === 'am' && user.attributes.isAreaManager) {
                                         return true;
-                                    } else if (entry === user.userName.toLowerCase()) {
+                                    } else if (entry === user.attributes.userName.toLowerCase()) {
                                         return true;
                                     }
                                     return false;
