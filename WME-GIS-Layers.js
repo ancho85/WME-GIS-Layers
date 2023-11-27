@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.08.02.002-py026
+// @version      2023.09.27.001-py027
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -174,33 +174,37 @@
             fontWeight: 'bold'
         }
     };
-    const ROAD_STYLE = new OpenLayers.Style({
-        pointRadius: 12,
-        fillColor: '#369',
-        pathLabel: '${label}',
-        label: '',
-        fontColor: '#faf',
-        labelSelect: true,
-        pathLabelYOffset: '${getOffset}',
-        pathLabelCurve: '${getSmooth}',
-        pathLabelReadable: '${getReadable}',
-        labelAlign: '${getAlign}',
-        labelOutlineWidth: 3,
-        labelOutlineColor: '#000',
-        strokeWidth: 3,
-        stroke: true,
-        strokeColor: '#f0f',
-        strokeOpacity: 0.4,
-        fontWeight: 'bold',
-        fontSize: 11
-    }, {
-        context: {
-            getOffset() { return -(W.map.getZoom() - 12 + 5); },
-            getSmooth() { return ''; },
-            getReadable() { return '1'; },
-            getAlign() { return 'cb'; }
-        }
-    });
+    let ROAD_STYLE;
+    function initRoadStyle() {
+        ROAD_STYLE = new OpenLayers.Style({
+            pointRadius: 12,
+            fillColor: '#369',
+            pathLabel: '${label}',
+            label: '',
+            fontColor: '#faf',
+            labelSelect: true,
+            pathLabelYOffset: '${getOffset}',
+            pathLabelCurve: '${getSmooth}',
+            pathLabelReadable: '${getReadable}',
+            labelAlign: '${getAlign}',
+            labelOutlineWidth: 3,
+            labelOutlineColor: '#000',
+            strokeWidth: 3,
+            stroke: true,
+            strokeColor: '#f0f',
+            strokeOpacity: 0.4,
+            fontWeight: 'bold',
+            fontSize: 11
+        }, {
+            context: {
+                getOffset() { return -(W.map.getZoom() + 5); },
+                getSmooth() { return ''; },
+                getReadable() { return '1'; },
+                getAlign() { return 'cb'; }
+            }
+        });
+    }
+
     // eslint-disable-next-line no-unused-vars
     const _regexReplace = {
         // Strip leading zeros or blank full label for any label starting with a non-digit or
@@ -258,7 +262,7 @@
     const SCRIPT_NAME = GM_info.script.name;
     const SCRIPT_VERSION = GM_info.script.version;
     const DOWNLOAD_URL = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
-    const SCRIPT_VERSION_CHANGES = ["Actualizado para ultima version (2.180) del WME", "Hay que volver a activar la Categoria de Capas tus preferencias"];
+    const SCRIPT_VERSION_CHANGES = [];
     let _mapLayer = null;
     let _roadLayer = null;
     let _settings = {};
@@ -1617,6 +1621,7 @@
         _gisLayers = [];
         if (firstCall) {
             loadScriptUpdateMonitor();
+            initRoadStyle();
             loadSettingsFromStorage();
             installPathFollowingLabels();
             // W.accelerators.events.listeners was removed in WME beta, so check for it here before calling WazeWrap.Interface.Shortcut
@@ -1674,12 +1679,12 @@
             init();
         } else {
             logDebug('Bootstrap ha fallado. Reintentando...');
-            setTimeout(onWmeReady, 1000);
+            setTimeout(onWmeReady, 100);
         }
     }
 
     function bootstrap() {
-        if (W?.userscripts?.state.isReady) {
+        if (typeof W === 'object' && W.userscripts?.state.isReady) {
             onWmeReady();
         } else {
             document.addEventListener('wme-ready', onWmeReady, { once: true });
