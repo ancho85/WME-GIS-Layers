@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2023.09.27.001-py027
+// @version      2023.09.27.001-py028
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -587,6 +587,7 @@
     }
 
     let _countiesInExtent = [];
+    let _statesInExtent = [];
 
     function getFetchableLayers(getInvisible) {
         if (W.map.getZoom() < 12 - 12) return []; //TODO: CHECK THIS LINE
@@ -635,15 +636,15 @@
     }
 
     function setStateFullAddress() {
-            if (document.getElementsByClassName("full-address")){
-                var full = document.getElementsByClassName("full-address")[0];
+            if (document.getElementsByClassName("location-info")){
+                var full = document.getElementsByClassName("location-info")[0];
                 if (full != undefined){
                     var yy = full.innerText;
                     if (yy.includes("Paraguay")){
                         var deptos = _statesInExtent.join(', ');
                         yy = yy.replace(/\[.*\]/g, '');
                         yy += " [" + deptos + "]";
-                        document.getElementsByClassName("full-address")[0].innerText = yy;
+                        document.getElementsByClassName("location-info")[0].innerText = yy;
                     }
                 }
             }
@@ -1025,6 +1026,10 @@
                             return { name, stateInfo };
                         });
                         logDebug(`PY Census counties: ${_countiesInExtent.map(c => `${c.name} ${c.stateInfo[1]}`).join(', ')}`);
+                        _statesInExtent = _.uniq(data.features.map(
+                            // eslint-disable-next-line radix
+                            feature => STATES.fromId(parseInt(feature.attributes.STATE, 10))[0]
+                        ));
                         setStateFullAddress();
                         let layersToFetch;
                         if (!_layersCleared) {
