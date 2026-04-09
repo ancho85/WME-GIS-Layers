@@ -2,60 +2,1146 @@
 /* eslint-disable brace-style, curly, nonblock-statement-body-position, no-template-curly-in-string, func-names */
 // ==UserScript==
 // @name         WME GIS Layers
-// @namespace    https://greasyfork.org/users/324334
-// @version      2025.06.15.000-py028
-// @description  Adds Paraguay GIS layers in WME
+// @namespace    https://greasyfork.org/users/45389
+// @version      2025.06.15.000
+// @description  Adds GIS layers in WME
 // @author       MapOMatic
-// @match        *://*.waze.com/*editor*
-// @exclude      *://*.waze.com/user/editor*
-// @exclude      *://*.waze.com/editor/sdk/*
+// @match         *://*.waze.com/*editor*
+// @exclude       *://*.waze.com/user/editor*
+// @exclude       *://*.waze.com/editor/sdk/*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
 // @require      https://update.greasyfork.org/scripts/506614/1441195/ESTreeProcessor.js
 // @require      https://update.greasyfork.org/scripts/509664/WME%20Utils%20-%20Bootstrap.js
 // @require      https://update.greasyfork.org/scripts/516445/1480246/Make%20GM%20xhr%20more%20parallel%20again.js
+// @require      https://WazeDev.github.io/wmeGisLBBOX/wmeGisLBBOX.js
 // @connect      greasyfork.org
+// @connect      github.io
 // @grant        GM_xmlhttpRequest
 // @grant        GM_info
 // @grant        GM_setClipboard
 // @license      GNU GPLv3
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // @connect      *
-// @connect www.asuncion.gov.py
-// @connect analisis.stp.gov.py
-// @connect www.arcgis.com
+// @connect tigerweb.geo.census.gov
+// @connect 136.234.13.165
+// @connect 216.167.160.20
+// @connect 35.172.145.31
+// @connect 52.37.30.30
+// @connect 54.213.14.253
+// @connect 72.10.206.73
+// @connect a2maps.a2gov.org
+// @connect adairgis.integritygis.com
+// @connect agis.charlottecountyfl.gov
+// @connect ago.clarkcountyohio.gov
+// @connect agomaps.larimer.org
+// @connect ags.agdmaps.com
+// @connect ags.bhamaps.com
+// @connect ags.kitsapgov.com
+// @connect ags.myokaloosa.com
+// @connect ags.roseville.ca.us
+// @connect ags1.wgxtreme.com
+// @connect ags10s1.dot.illinois.gov
+// @connect ags2maps.srcity.org
+// @connect ags3.scgov.net
+// @connect aldotgis.dot.state.al.us
+// @connect alleganygis.allconet.org
+// @connect alphagis.alpharetta.ga.us
+// @connect andrewgis.integritygis.com
+// @connect anrmaps.vermont.gov
+// @connect ansoncountygis.com
+// @connect apnsgis1.apsu.edu
+// @connect apnsgis4.apsu.edu
+// @connect app.mdt.mt.gov
+// @connect apps.alamance-nc.com
+// @connect apps.fs.usda.gov
+// @connect apps.lickingcounty.gov
+// @connect apps.vernoncounty.org
+// @connect apps.wyoroad.info
+// @connect arcgis-morrowarcgis-1015369042.us-east-1.elb.amazonaws.com
+// @connect arcgis-web.chinohills.org
+// @connect arcgis.atlantaregional.com
+// @connect arcgis.c3gov.com
+// @connect arcgis.cityofcapegirardeau.org
+// @connect arcgis.cityofwatsonville.org
+// @connect arcgis.co.beltrami.mn.us
+// @connect arcgis.co.henry.ga.us
+// @connect arcgis.co.lancaster.pa.us
+// @connect arcgis.forneytx.gov
+// @connect arcgis.gis.lacounty.gov
+// @connect arcgis.kingsporttn.gov
+// @connect arcgis.leaguecitytx.gov
+// @connect arcgis.lewiscountywa.gov
+// @connect arcgis.mobile311.com
+// @connect arcgis.racinecounty.com
+// @connect arcgis.tampagov.net
+// @connect arcgis.tuscco.com
+// @connect arcgis.vgsi.com
+// @connect arcgis.water.nv.gov
+// @connect arcgis.waxahachie.com
+// @connect arcgis.yumacountyaz.gov
+// @connect arcgis4.roktech.net
+// @connect arcgis5.roktech.net
+// @connect arcgisce.co.valencia.nm.us
+// @connect arcgisserver.digital.mass.gov
+// @connect arcgisserver.lincolncounty.org
+// @connect arcgisserver.maine.gov
+// @connect arcgisserver2.morpc.org
+// @connect arcgissrv.cityofbartlesville.org
+// @connect arcgiswap01.ci.temple.tx.us
+// @connect arcgisweb.carteretcountync.gov
+// @connect arcgisweb.countyofnewaygo.com
+// @connect arcmobile.co.albany.wy.us
+// @connect arcportal.florenceco.org
+// @connect arcserv.co.washington.ar.us
+// @connect arcserver.madisoncountyky.us
+// @connect arcserver2.oconeesc.com
+// @connect arcweb.hcad.org
+// @connect ardmoregis.ardmorecity.org
+// @connect arlgis.arlingtonva.us
+// @connect atchisongis.integritygis.com
+// @connect atlas.co.chelan.wa.us
+// @connect atlas.geoportalmaps.com
+// @connect audraingis.integritygis.com
+// @connect batesgis.integritygis.com
+// @connect bcgis.baltimorecountymd.gov
+// @connect bcgis.brunswickcountync.gov
+// @connect bcgishub.broward.org
+// @connect bcmaps.bradfordco.org
+// @connect bentongis.integritygis.com
+// @connect biamaps.geoplatform.gov
+// @connect bocagis.ci.boca-raton.fl.us
+// @connect bonneville.esriemcs.com
+// @connect bpagis.bossierparish.org
+// @connect bryangis.bryan-county.org
+// @connect buchanangis.integritygis.com
+// @connect butlergis.integritygis.com
+// @connect c39gisserver.co.richland.nd.us
+// @connect ca.dep.state.fl.us
+// @connect cagisonline.hamilton-co.org
+// @connect calmaps.co.calumet.wi.us
+// @connect caltrans-gis.dot.ca.gov
+// @connect cama.shelbycountyauditors.com
+// @connect camdengis.integritygis.com
+// @connect cassweb3.co.cass.mn.us
+// @connect cceo.co.comal.tx.us
+// @connect ccmap.cccounty.us
+// @connect cecilmaps.org
+// @connect charitongis.integritygis.com
+// @connect christiangis.integritygis.com
+// @connect clearfieldco.org
+// @connect cloud.longviewtexas.gov
+// @connect cloudgis.bonnercountyid.gov
+// @connect co.knox.il.us
+// @connect coagisweb.cabq.gov
+// @connect com.blountgis.org
+// @connect concordgis.ci.concord.ca.us
+// @connect conservationgis.alabama.gov
+// @connect coopergis.integritygis.com
+// @connect covgis.cityofvacaville.com
+// @connect coweta-gis-web.coweta.ga.us
+// @connect cowlitzgis.net
+// @connect crgis.cedar-rapids.org
+// @connect cteco.uconn.edu
+// @connect currituckncgov.com
+// @connect cw.townofclaytonnc.org
+// @connect dadegis.integritygis.com
+// @connect dallasgis.integritygis.com
+// @connect data.wsdot.wa.gov
+// @connect data1.digitaldataservices.com
+// @connect dc-web-2.co.douglas.mn.us
+// @connect dcgis.dekalbcountyga.gov
+// @connect dcimapapps.countyofdane.com
+// @connect dekalbgis.integritygis.com
+// @connect delta.co.clatsop.or.us
+// @connect dev.wilsonvillemaps.com
+// @connect doniphangis.integritygis.com
+// @connect dotapp9.dot.state.mn.us
+// @connect douglasgis.integritygis.com
+// @connect dtdapps.coloradodot.info
+// @connect dungis.dunwoodyga.gov
+// @connect dunklingis.integritygis.com
+// @connect ecgis.co.ellis.tx.us
+// @connect egis.baltimorecity.gov
+// @connect egis.pinellas.gov
+// @connect elb.elevatemaps.io
+// @connect emapsplus.com
+// @connect enigma.accgov.com
+// @connect enterprise.firstmap.delaware.gov
+// @connect eoc.franklin-gov.com
+// @connect epv.ci.juneau.ak.us
+// @connect eservices.co.crook.or.us
+// @connect essex-gis.co.essex.ny.us
+// @connect fcgis.franklincountypa.gov
+// @connect feature.geographic.texas.gov
+// @connect feature.tnris.org
+// @connect fieldstone.orangecountync.gov
+// @connect fremontgis.com
+// @connect gasconadegis.integritygis.com
+// @connect gateway.maps.rlid.org
+// @connect gcgis.guilfordcountync.gov
+// @connect geaugarealink.co.geauga.oh.us
+// @connect geo.co.butler.pa.us
+// @connect geo.co.harrison.ms.us
+// @connect geo.dentoncad.com
+// @connect geo.forsythco.com
+// @connect geo.friscotexas.gov
+// @connect geo.oit.ohio.gov
+// @connect geo.sandag.org
+// @connect geo.sanjoseca.gov
+// @connect geo.statcan.gc.ca
+// @connect geo.tompkins-co.org
+// @connect geo.vbgov.com
+// @connect geo1.oit.ohio.gov
+// @connect geo2.co.dodge.wi.us
+// @connect geodata.hawaii.gov
+// @connect geodata.md.gov
+// @connect geodata.sarpy.com
+// @connect geodataportal.net
+// @connect geonb.snb.ca
+// @connect geopower.jws.com
+// @connect geoweb.martin.fl.us
+// @connect geoweb02.ci.richmond.ca.us
+// @connect gis-2.warrencountyny.gov
+// @connect gis-server.co.becker.mn.us
+// @connect gis-server.co.montezuma.co.us
+// @connect gis.aacounty.org
+// @connect gis.abilenetx.com
+// @connect gis.adamscounty.org
+// @connect gis.addisontx.gov
+// @connect gis.aecomonline.net
+// @connect gis.allegancounty.org
+// @connect gis.allencountyohio.com
+// @connect gis.apachejunctionaz.gov
+// @connect gis.arapahoegov.com
+// @connect gis.arkansas.gov
+// @connect gis.arlingtonva.us
+// @connect gis.ashecountygov.com
+// @connect gis.ashevillenc.gov
+// @connect gis.atlantaga.gov
+// @connect gis.auburnalabama.org
+// @connect gis.auglaizecounty.org
+// @connect gis.azdot.gov
+// @connect gis.bakersfieldcity.us
+// @connect gis.baycountyfl.gov
+// @connect gis.beaufortcountysc.gov
+// @connect gis.beaumonttexas.gov
+// @connect gis.belmont.gov
+// @connect gis.bentoncountyar.gov
+// @connect gis.berkeleycountysc.gov
+// @connect gis.bigstonecounty.gov
+// @connect gis.bladenco.org
+// @connect gis.blairco.org
+// @connect gis.blm.gov
+// @connect gis.blueearthcountymn.gov
+// @connect gis.bransonmo.gov
+// @connect gis.brevardfl.gov
+// @connect gis.browncountywi.gov
+// @connect gis.buncombecounty.org
+// @connect gis.burkenc.org
+// @connect gis.burleighco.com
+// @connect gis.buttecounty.net
+// @connect gis.caldwellcountync.org
+// @connect gis.calhouncounty.org
+// @connect gis.campbellca.gov
+// @connect gis.campbellcountywy.gov
+// @connect gis.carboncounty.com
+// @connect gis.cayugacounty.us
+// @connect gis.cccounty.us
+// @connect gis.ccgisonline.com
+// @connect gis.ccpa.net
+// @connect gis.cedarfalls.com
+// @connect gis.cedarhilltx.com
+// @connect gis.cherokeega.com
+// @connect gis.chippewa.mn
+// @connect gis.chisagocountymn.gov
+// @connect gis.ci.janesville.wi.us
+// @connect gis.ci.mcminnville.or.us
+// @connect gis.ci.waco.tx.us
+// @connect gis.citruspa.org
+// @connect gis.cityofaikensc.gov
+// @connect gis.cityofberkeley.info
+// @connect gis.cityofboston.gov
+// @connect gis.cityofdenton.com
+// @connect gis.cityofirvine.org
+// @connect gis.cityofmiddletown.com
+// @connect gis.cityofmoore.com
+// @connect gis.cityofsanmateo.org
+// @connect gis.cityofwestsacramento.org
+// @connect gis.clevelandtn.gov
+// @connect gis.cmpdd.org
+// @connect gis.co.benton.or.us
+// @connect gis.co.berks.pa.us
+// @connect gis.co.carlton.mn.us
+// @connect gis.co.carver.mn.us
+// @connect gis.co.clarion.pa.us
+// @connect gis.co.cumberland.nc.us
+// @connect gis.co.douglas.or.us
+// @connect gis.co.eau-claire.wi.us
+// @connect gis.co.fairfield.oh.us
+// @connect gis.co.fillmore.mn.us
+// @connect gis.co.grand.co.us
+// @connect gis.co.grant.mn.us
+// @connect gis.co.grant.wi.gov
+// @connect gis.co.green-lake.wi.us
+// @connect gis.co.holmes.oh.us
+// @connect gis.co.hubbard.mn.us
+// @connect gis.co.isanti.mn.us
+// @connect gis.co.josephine.or.us
+// @connect gis.co.kittitas.wa.us
+// @connect gis.co.linn.or.us
+// @connect gis.co.mille-lacs.mn.us
+// @connect gis.co.nezperce.id.us
+// @connect gis.co.oneida.wi.us
+// @connect gis.co.pepin.wi.us
+// @connect gis.co.pierce.wi.us
+// @connect gis.co.polk.mn.us
+// @connect gis.co.richland.wi.us
+// @connect gis.co.roseau.mn.us
+// @connect gis.co.sangamon.il.us
+// @connect gis.co.sauk.wi.us
+// @connect gis.co.sherburne.mn.us
+// @connect gis.co.stearns.mn.us
+// @connect gis.co.stevens.mn.us
+// @connect gis.co.tuscarawas.oh.us
+// @connect gis.co.wadena.mn.us
+// @connect gis.co.waseca.mn.us
+// @connect gis.co.waushara.wi.us
+// @connect gis.co.wood.wi.us
+// @connect gis.co.ym.mn.gov
+// @connect gis.colorado.gov
+// @connect gis.coloradosprings.gov
+// @connect gis.columbiacountyga.gov
+// @connect gis.columbiacountymaps.com
+// @connect gis.columbiasc.gov
+// @connect gis.columbusga.org
+// @connect gis.concordnh.gov
+// @connect gis.cookeville-tn.org
+// @connect gis.corvallisoregon.gov
+// @connect gis.cosb.us
+// @connect gis.countyofriverside.us
+// @connect gis.cowleycounty.org
+// @connect gis.cranstonri.org
+// @connect gis.cravencountync.gov
+// @connect gis.crcog.org
+// @connect gis.crookcounty.wy.gov
+// @connect gis.crowwing.us
+// @connect gis.cstx.gov
+// @connect gis.danville-va.gov
+// @connect gis.dauphincounty.org
+// @connect gis.deerparktx.gov
+// @connect gis.dekalbcountyga.gov
+// @connect gis.delcopa.gov
+// @connect gis.dentoncounty.gov
+// @connect gis.districtiii.org
+// @connect gis.dogis.org
+// @connect gis.donaanacounty.org
+// @connect gis.dot.nh.gov
+// @connect gis.dot.nv.gov
+// @connect gis.dot.state.oh.us
+// @connect gis.douglascountyks.org
+// @connect gis.dubuquecounty.us
+// @connect gis.dupageco.org
+// @connect gis.duplincountync.com
+// @connect gis.dutchessny.gov
+// @connect gis.eastgreenwichri.com
+// @connect gis.edgecombecountync.gov
+// @connect gis.edmondok.gov
+// @connect gis.elkocountynv.net
+// @connect gis.elpasotexas.gov
+// @connect gis.emmetcounty.org
+// @connect gis.eriecountypa.gov
+// @connect gis.fortlauderdale.gov
+// @connect gis.franklincountyohio.gov
+// @connect gis.fultoncountyoh.com
+// @connect gis.fwb.org
+// @connect gis.fwp.mt.gov
+// @connect gis.gallatin.mt.gov
+// @connect gis.gallupnm.us
+// @connect gis.garrettcounty.org
+// @connect gis.gastongov.com
+// @connect gis.gcrc.org
+// @connect gis.gilacountyaz.gov
+// @connect gis.gocolumbiamo.com
+// @connect gis.goshencounty.org
+// @connect gis.gptx.org
+// @connect gis.grandcountyutah.net
+// @connect gis.greenecountyohio.gov
+// @connect gis.greenegovernment.com
+// @connect gis.greensboro-nc.gov
+// @connect gis.gscplanning.com
+// @connect gis.hardeecounty.net
+// @connect gis.harnett.org
+// @connect gis.hartford.gov
+// @connect gis.hawaiicounty.gov
+// @connect gis.hcpafl.org
+// @connect gis.hennepin.us
+// @connect gis.huntingtonbeachca.gov
+// @connect gis.iberiagov.net
+// @connect gis.indot.in.gov
+// @connect gis.interdev.com
+// @connect gis.iowadot.gov
+// @connect gis.itd.idaho.gov
+// @connect gis.jacksonnc.org
+// @connect gis.jccal.org
+// @connect gis.johnson-county.com
+// @connect gis.johnsoncitytn.org
+// @connect gis.kalamazoocity.org
+// @connect gis.kanawhacountyassessor.com
+// @connect gis.kaufmancounty.net
+// @connect gis.kcgov.us
+// @connect gis.kcmn.us
+// @connect gis.kentcountyde.gov
+// @connect gis.kentcountymi.gov
+// @connect gis.kleinfelder.com
+// @connect gis.lacrossecounty.org
+// @connect gis.lafayettecountywi.org
+// @connect gis.lakecountyfl.gov
+// @connect gis.lakecountyohio.gov
+// @connect gis.lapazcountyaz.org
+// @connect gis.laplata.co.us
+// @connect gis.lasallecounty.org
+// @connect gis.latah.id.us
+// @connect gis.leecountyil.com
+// @connect gis.lehighcounty.org
+// @connect gis.leoc.net
+// @connect gis.littleelm.org
+// @connect gis.livingstoncounty.us
+// @connect gis.lja.com
+// @connect gis.lojic.org
+// @connect gis.losalamosnm.us
+// @connect gis.luzernecounty.org
+// @connect gis.lyco.org
+// @connect gis.lyon-county.org
+// @connect gis.macombgov.org
+// @connect gis.maconnc.org
+// @connect gis.maderacounty.com
+// @connect gis.marinpublic.com
+// @connect gis.marionfl.org
+// @connect gis.masoncountywa.gov
+// @connect gis.massdot.state.ma.us
+// @connect gis.mbakerintl.com
+// @connect gis.mcgtn.org
+// @connect gis.mckeancountypa.gov
+// @connect gis.mcohio.org
+// @connect gis.mendocinocounty.org
+// @connect gis.mercercountypa.gov
+// @connect gis.mesaaz.gov
+// @connect gis.mifflincountypa.gov
+// @connect gis.minnehahacounty.org
+// @connect gis.miottawa.org
+// @connect gis.missoulacounty.us
+// @connect gis.modestogov.com
+// @connect gis.mono.ca.gov
+// @connect gis.montgomeryal.gov
+// @connect gis.moorecountync.gov
+// @connect gis.mytoddcounty.com
+// @connect gis.napa.ca.gov
+// @connect gis.nashcountync.gov
+// @connect gis.nassaucountyny.gov
+// @connect gis.nccde.org
+// @connect gis.ne.gov
+// @connect gis.neccog.org
+// @connect gis.newedgeservices.com
+// @connect gis.newhavenct.gov
+// @connect gis.nhcgov.com
+// @connect gis.niagaracounty.com
+// @connect gis.nola.gov
+// @connect gis.norrycopa.net
+// @connect gis.northamptoncounty.org
+// @connect gis.odot.state.or.us
+// @connect gis.ohiodnr.gov
+// @connect gis.okc.gov
+// @connect gis.orangecountygov.com
+// @connect gis.orangecountyva.gov
+// @connect gis.osceola.org
+// @connect gis.outagamie.org
+// @connect gis.owensboro.org
+// @connect gis.pandai.com
+// @connect gis.pendercountync.gov
+// @connect gis.pendoreilleco.org
+// @connect gis.penndot.gov
+// @connect gis.penndot.pa.gov
+// @connect gis.peoriacounty.gov
+// @connect gis.personcountync.gov
+// @connect gis.pgatlas.com
+// @connect gis.pikepa.org
+// @connect gis.pinal.gov
+// @connect gis.pittcountync.gov
+// @connect gis.pittsburgca.gov
+// @connect gis.polk-county.net
+// @connect gis.popecountymn.gov
+// @connect gis.port-orange.org
+// @connect gis.pottcounty-ia.gov
+// @connect gis.putnam-fl.com
+// @connect gis.qac.org
+// @connect gis.randolphcountync.gov
+// @connect gis.rapides911.org
+// @connect gis.rcgov.org
+// @connect gis.renvillecountymn.com
+// @connect gis.rileycountyks.gov
+// @connect gis.rocklin.ca.us
+// @connect gis.rowancountync.gov
+// @connect gis.rrnm.gov
+// @connect gis.rtcsnv.com
+// @connect gis.rutherfordcountync.gov
+// @connect gis.sanjuanco.com
+// @connect gis.santa-clarita.com
+// @connect gis.santacruzcounty.us
+// @connect gis.santamonica.gov
+// @connect gis.sawyerwi.org
+// @connect gis.sccwi.gov
+// @connect gis.shastacounty.gov
+// @connect gis.sheboygancounty.com
+// @connect gis.shelbycountytn.gov
+// @connect gis.showmeboone.com
+// @connect gis.siouxfalls.gov
+// @connect gis.slocounty.ca.gov
+// @connect gis.sncoapps.us
+// @connect gis.southkingstownri.com
+// @connect gis.steele.mn
+// @connect gis.stlouiscountymn.gov
+// @connect gis.sullivanny.us
+// @connect gis.sumtercountyfl.gov
+// @connect gis.surryinfo.net
+// @connect gis.talbotdes.org
+// @connect gis.tazewell.com
+// @connect gis.texoma.cog.tx.us
+// @connect gis.thecolonytx.gov
+// @connect gis.thomsonreuters.com
+// @connect gis.transportation.wv.gov
+// @connect gis.transylvaniacounty.org
+// @connect gis.traviscountytx.gov
+// @connect gis.tularecounty.ca.gov
+// @connect gis.ucdavis.edu
+// @connect gis.ulstercountyny.gov
+// @connect gis.unioncountync.gov
+// @connect gis.vernon-ct.gov
+// @connect gis.victorvilleca.gov
+// @connect gis.warrensburg-mo.com
+// @connect gis.washingtoncountyny.gov
+// @connect gis.watertownwi.gov
+// @connect gis.waukesha-wi.gov
+// @connect gis.waukeshacounty.gov
+// @connect gis.weatherfordtx.gov
+// @connect gis.westmorelandcountypa.gov
+// @connect gis.westplains.net
+// @connect gis.whatcomcounty.us
+// @connect gis.whitfieldcountyga.com
+// @connect gis.wilco.org
+// @connect gis.wilkescounty.net
+// @connect gis.willcountyillinois.com
+// @connect gis.wilson-co.com
+// @connect gis.wilsonnc.org
+// @connect gis.wiu.edu
+// @connect gis.worldviewsolutions.com
+// @connect gis.wyo.gov
+// @connect gis.yadkincountync.gov
+// @connect gis.yanceycountync.org
+// @connect gis.yavapaiaz.gov
+// @connect gis.yolocounty.gov
+// @connect gis.yolocounty.org
+// @connect gis.yuba.org
+// @connect gis1.acimap.us
+// @connect gis1.georgetowncountysc.org
+// @connect gis1.hamiltoncounty.in.gov
+// @connect gis11.cama.io
+// @connect gis11.services.ncdot.gov
+// @connect gis12.cookcountyil.gov
+// @connect gis2.arlingtontx.gov
+// @connect gis2.arlingtonva.us
+// @connect gis2.co.dakota.mn.us
+// @connect gis2.co.marathon.wi.us
+// @connect gis2.co.ozaukee.wi.us
+// @connect gis2.erie.gov
+// @connect gis2.gworks.com
+// @connect gis2.idaho.gov
+// @connect gis2.lawrenceks.org
+// @connect gis2.orangeburgcounty.org
+// @connect gis2.sandyspringsga.gov
+// @connect gis2.totaland.com
+// @connect gis21svweb.lincolnparish.org
+// @connect gis3.cdmsmithgis.com
+// @connect gis3.cmpdd.org
+// @connect gis3.gwinnettcounty.com
+// @connect gis3.gworks.com
+// @connect gis3.montgomerycountymd.gov
+// @connect gis3.richmondnc.com
+// @connect gis4.montgomerycountymd.gov
+// @connect gisago-qa.mcgi.state.mi.us
+// @connect gisago.mcgi.state.mi.us
+// @connect gisapp.adcogov.org
+// @connect gisapp.mahoningcountyoh.gov
+// @connect gisapps.cityofchicago.org
+// @connect gisapps.glendaleca.gov
+// @connect gisapps.rileycountyks.gov
+// @connect gisapps.wicomicocounty.org
+// @connect gisapps1.mapoakland.com
+// @connect gisarcweb.jeffersoncountywv.org
+// @connect gisccapps.charlestoncounty.org
+// @connect gisdata.alleghenycounty.us
+// @connect gisdata.dot.ca.gov
+// @connect gisdata.farrwestengineering.com
+// @connect gisdata.in.gov
+// @connect gisdata.jeffersoncountyoh.com
+// @connect gisdata.kingcounty.gov
+// @connect gisdata.pandai.com
+// @connect gisdata.pima.gov
+// @connect gisdata.seattle.gov
+// @connect gisdemo1.cdmsmith.com
+// @connect gisdemo2.cdmsmith.com
+// @connect gisentapp01.highpointnc.gov
+// @connect gisext.lincoln.ne.gov
+// @connect gishost.cdmsmithgis.com
+// @connect gisinfo.co.portage.wi.gov
+// @connect gisinfo.co.walworth.wi.us
+// @connect gisinfo.lawrencevillega.org
+// @connect gismap.augustaga.gov
+// @connect gismap.cityofboise.org
+// @connect gismap.co.juneau.wi.us
+// @connect gismap.co.marshall.mn.us
+// @connect gismap.co.norman.mn.us
+// @connect gismap.co.red-lake.mn.us
+// @connect gismapping.stafford.va.us
+// @connect gismaps.cityofboise.org
+// @connect gismaps.cityofgreer.org
+// @connect gismaps.co.cerro-gordo.ia.us
+// @connect gismaps.coconino.az.gov
+// @connect gismaps.columbiapa.org
+// @connect gismaps.flower-mound.com
+// @connect gismaps.fultoncountyga.gov
+// @connect gismaps.hctra.org
+// @connect gismaps.kingcounty.gov
+// @connect gismaps.redwoodcity.org
+// @connect gismaps.sedgwickcounty.org
+// @connect gismaps.wichita.gov
+// @connect gismapserver.leegov.com
+// @connect gismo.spokanecounty.org
+// @connect gisonline.greenvillenc.gov
+// @connect gisp.co.genesee.ny.us
+// @connect gisp.mcgi.state.mi.us
+// @connect gisportal.champaignil.gov
+// @connect gisportal.co.calaveras.ca.us
+// @connect gisportal.co.madison.il.us
+// @connect gisportal.co.warren.oh.us
+// @connect gisportal.dorchestercounty.net
+// @connect gisportal.dot.ct.gov
+// @connect gisportal.fnsb.gov
+// @connect gisportal.ircgov.com
+// @connect gisportal.ontarioca.gov
+// @connect gisportal.stocktonca.gov
+// @connect gisportal.stpgov.org
+// @connect gispro.porterco.org
+// @connect gisprod10.co.fresno.ca.us
+// @connect gisprodops.chesco.org
+// @connect gispub.cityofaspen.com
+// @connect gispub.co.washington.or.us
+// @connect gispublic.co.lake.ca.us
+// @connect gispw.coloradosprings.gov
+// @connect gisrevprxy.seattle.gov
+// @connect giss3.cmpdd.org
+// @connect gisserver.christiancountymo.gov
+// @connect gisservice.cityofmesquite.com
+// @connect gisservicemt.gov
+// @connect gisservices.chathamcountync.gov
+// @connect gisservices.chathamnc.org
+// @connect gisservices.co.anoka.mn.us
+// @connect gisservices.douglasnv.us
+// @connect gisservices.its.ny.gov
+// @connect gisservices.oakgov.com
+// @connect gisservices2.suffolkcountyny.gov
+// @connect gissites4.centrecountypa.gov
+// @connect gissvr.watgov.org
+// @connect gisweb-18.ci.killeen.tx.us
+// @connect gisweb-adapters.bcpa.net
+// @connect gisweb.albemarle.org
+// @connect gisweb.birminghamal.gov
+// @connect gisweb.casscountynd.gov
+// @connect gisweb.champaignil.gov
+// @connect gisweb.ci.manteca.ca.us
+// @connect gisweb.co.aitkin.mn.us
+// @connect gisweb.co.mower.mn.us
+// @connect gisweb.co.wilkin.mn.us
+// @connect gisweb.fdlco.wi.gov
+// @connect gisweb.fortbendcountytx.gov
+// @connect gisweb.jeffcowa.us
+// @connect gisweb.miamidade.gov
+// @connect gisweb.pwcva.gov
+// @connect gisweb.wycokck.org
+// @connect gisweb2014.gordoncounty.org
+// @connect giswww.westchestergov.com
+// @connect git.co.tioga.ny.us
+// @connect gmdnags.colliercountyfl.gov
+// @connect grant.co.jefferson.id.us
+// @connect gweb01.co.olmsted.mn.us
+// @connect harpergis.integritygis.com
+// @connect harrisonms.geopowered.com
+// @connect haslet.halff.com
+// @connect hazards.fema.gov
+// @connect hdgis.ingham.org
+// @connect heartlandmpo.com
+// @connect helenamontanamaps.org
+// @connect henrygis.integritygis.com
+// @connect hgis.hialeahfl.gov
+// @connect holtgis.integritygis.com
+// @connect host.cdmsmithgis.com
+// @connect hostingdata2.tighebond.com
+// @connect hostingdata3.tighebond.com
+// @connect huntsvillegis.com
+// @connect ifgis.idahofallsidaho.gov
+// @connect ihost.tularecounty.ca.gov
+// @connect imap.klickitatcounty.org
+// @connect ims.districtiii.org
+// @connect intervector.leoncountyfl.gov
+// @connect iowagis.integritygis.com
+// @connect ira.property-appraiser.org
+// @connect jeffarcgis.jeffersoncountywi.gov
+// @connect joplingis.org
+// @connect k3gis.com
+// @connect kanplan.ksdot.gov
+// @connect kcgis.kentoncounty.org
+// @connect kenhagis.kenha.co.ke
+// @connect kygisserver.ky.gov
+// @connect lacledegis.integritygis.com
+// @connect lafayettegis.integritygis.com
+// @connect landrecords.greencountywi.org
+// @connect lawrencegis.integritygis.com
+// @connect lcapps.co.lucas.oh.us
+// @connect lcmaps.lanecounty.org
+// @connect lee-arcgis.leecountync.gov
+// @connect lincolngis.integritygis.com
+// @connect linngis.integritygis.com
+// @connect lio.milwaukeecountywi.gov
+// @connect livingstongis.integritygis.com
+// @connect location.cabarruscounty.us
+// @connect logis.loudoun.gov
+// @connect loraincountyauditor.com
+// @connect lrs.co.columbia.wi.us
+// @connect lucity.sbpg.net
+// @connect macongis.integritygis.com
+// @connect madison.rexburg.org
+// @connect madisongis.cityofalbany.net
+// @connect manitowocmaps.info
+// @connect map.claycountymn.gov
+// @connect map.co.clear-creek.co.us
+// @connect map.co.clearwater.mn.us
+// @connect map.co.merced.ca.us
+// @connect map.co.thurston.wa.us
+// @connect map.co.trempealeau.wi.us
+// @connect map.coppelltx.gov
+// @connect map.eaglecounty.us
+// @connect map.newberrycounty.net
+// @connect map.opkansas.org
+// @connect map.pikepass.com
+// @connect map.stclairco.com
+// @connect map.sussexcountyde.gov
+// @connect map.wyoroad.info
+// @connect map9.incog.org
+// @connect mapd.kcmo.org
+// @connect mapdata.baytown.org
+// @connect mapdata.lasvegasnevada.gov
+// @connect mapdata.tucsonaz.gov
+// @connect mapit.fortworthtexas.gov
+// @connect mapitwest.fortworthtexas.gov
+// @connect mapping.adamscountypa.gov
+// @connect mapping.kenoshacountywi.gov
+// @connect mapping.mitchellcounty.org
+// @connect mapping.modot.org
+// @connect maps.adaok.com
+// @connect maps.alexandercountync.gov
+// @connect maps.alexandriava.gov
+// @connect maps.austintexas.gov
+// @connect maps.bannockcounty.us
+// @connect maps.bayfieldcounty.wi.gov
+// @connect maps.bcad.org
+// @connect maps.berkeleywv.org
+// @connect maps.boonecountyil.org
+// @connect maps.bossierparishgis.org
+// @connect maps.bouldercounty.org
+// @connect maps.brazoriacountytx.gov
+// @connect maps.brla.gov
+// @connect maps.brookhavenga.gov
+// @connect maps.bryantx.gov
+// @connect maps.burlesontx.com
+// @connect maps.butlercountyauditor.org
+// @connect maps.canyonco.org
+// @connect maps.capturecama.com
+// @connect maps.casperwy.gov
+// @connect maps.chautauquacounty.com
+// @connect maps.cherokeecounty-nc.gov
+// @connect maps.ci.longmont.co.us
+// @connect maps.ci.nacogdoches.tx.us
+// @connect maps.cityhs.net
+// @connect maps.cityofconroe.org
+// @connect maps.cityofhenderson.com
+// @connect maps.cityofls.net
+// @connect maps.cityofmadison.com
+// @connect maps.cityofmobile.org
+// @connect maps.cityofsherman.com
+// @connect maps.cityoftulsa.org
+// @connect maps.cityofwaterlooiowa.com
+// @connect maps.clarkcountynv.gov
+// @connect maps.claycountygov.com
+// @connect maps.clermontauditor.org
+// @connect maps.clintoncountypa.com
+// @connect maps.co.blaine.id.us
+// @connect maps.co.forsyth.nc.us
+// @connect maps.co.goodhue.mn.us
+// @connect maps.co.gov
+// @connect maps.co.grayson.tx.us
+// @connect maps.co.itasca.mn.us
+// @connect maps.co.kendall.il.us
+// @connect maps.co.kern.ca.us
+// @connect maps.co.lincoln.wi.us
+// @connect maps.co.palm-beach.fl.us
+// @connect maps.co.polk.or.us
+// @connect maps.co.pueblo.co.us
+// @connect maps.co.ramsey.mn.us
+// @connect maps.co.shawano.wi.us
+// @connect maps.co.warren.oh.us
+// @connect maps.co.washington.mn.us
+// @connect maps.co.yellowstone.mt.gov
+// @connect maps.coj.net
+// @connect maps.collincountytx.gov
+// @connect maps.countyofmerced.com
+// @connect maps.crc.ga.gov
+// @connect maps.ctmetro.org
+// @connect maps.dancgis.org
+// @connect maps.dcad.org
+// @connect maps.delco-gis.org
+// @connect maps.deltacountyco.gov
+// @connect maps.deschutes.org
+// @connect maps.desotocountyms.gov
+// @connect maps.dmgov.org
+// @connect maps.dotd.la.gov
+// @connect maps.douglascountyga.gov
+// @connect maps.douglascountywa.net
+// @connect maps.dsm.city
+// @connect maps.elbertcounty-co.gov
+// @connect maps.escpa.org
+// @connect maps.etcog.org
+// @connect maps.evansvillegis.com
+// @connect maps.fayetteville-ar.gov
+// @connect maps.fishers.in.us
+// @connect maps.flathead.mt.gov
+// @connect maps.floridadisaster.org
+// @connect maps.frederickcountymd.gov
+// @connect maps.fredericksburgva.gov
+// @connect maps.garfield-county.com
+// @connect maps.garlandtx.gov
+// @connect maps.gov.bc.ca
+// @connect maps.grcity.us
+// @connect maps.groton-ct.gov
+// @connect maps.grundyco.org
+// @connect maps.hayward-ca.gov
+// @connect maps.haywoodnc.net
+// @connect maps.highlandvillage.org
+// @connect maps.hokecounty.org
+// @connect maps.huerfano.us
+// @connect maps.huntsvilleal.gov
+// @connect maps.iredellcountync.gov
+// @connect maps.itos.uga.edu
+// @connect maps.jocogov.org
+// @connect maps.kytc.ky.gov
+// @connect maps.lacity.org
+// @connect maps.lagrange-ga.org
+// @connect maps.lakecountyil.gov
+// @connect maps.laramiecounty.com
+// @connect maps.lcwy.org
+// @connect maps.lebanontn.org
+// @connect maps.lex-co.com
+// @connect maps.lexingtonky.gov
+// @connect maps.libertymo.gov
+// @connect maps.lincolncountysd.org
+// @connect maps.linkgis.org
+// @connect maps.matsugov.us
+// @connect maps.mckinneytexas.org
+// @connect maps.meshekgis.com
+// @connect maps.miamigov.com
+// @connect maps.midlandtexas.gov
+// @connect maps.monroecounty.gov
+// @connect maps.muskegoncountygis.com
+// @connect maps.nashville.gov
+// @connect maps.ncpafl.com
+// @connect maps.nevadacountyca.gov
+// @connect maps.nj.gov
+// @connect maps.normanok.gov
+// @connect maps.northaugustasc.gov
+// @connect maps.ocgov.net
+// @connect maps.opkansas.org
+// @connect maps.orcity.org
+// @connect maps.palmcoastgov.com
+// @connect maps.parkco.us
+// @connect maps.phoenix.gov
+// @connect maps.pitkincounty.com
+// @connect maps.planogis.org
+// @connect maps.pottercountypa.net
+// @connect maps.prcity.com
+// @connect maps.raleighnc.gov
+// @connect maps.richlandcountyoh.us
+// @connect maps.rutherfordcountytn.gov
+// @connect maps.santa-clarita.com
+// @connect maps.santabarbaraca.gov
+// @connect maps.sccmo.org
+// @connect maps.semogis.com
+// @connect maps.sfdpw.org
+// @connect maps.sgcity.org
+// @connect maps.shelbyal.com
+// @connect maps.slocity.org
+// @connect maps.spartanburgcounty.org
+// @connect maps.springfieldmo.gov
+// @connect maps.steamboatsprings.net
+// @connect maps.stlouisco.com
+// @connect maps.swaincountync.gov
+// @connect maps.tippecanoe.in.gov
+// @connect maps.townofcary.org
+// @connect maps.udot.utah.gov
+// @connect maps.vcgi.vermont.gov
+// @connect maps.ventura.org
+// @connect maps.victoriatx.org
+// @connect maps.vilascountywi.gov
+// @connect maps.vtrans.vermont.gov
+// @connect maps.wake.gov
+// @connect maps.washco-md.net
+// @connect maps.washcowisco.gov
+// @connect maps1.eriecounty.oh.gov
+// @connect maps1.larimer.org
+// @connect maps11.eriecounty.oh.gov
+// @connect maps2.bgadd.org
+// @connect maps2.cattco.org
+// @connect maps2.ci.euless.tx.us
+// @connect maps2.columbus.gov
+// @connect maps2.dcgis.dc.gov
+// @connect maps2.san-marcos.net
+// @connect maps2.timmons.com
+// @connect maps2.vcgov.org
+// @connect maps6.stlouis-mo.gov
+// @connect maps7.eriecounty.oh.gov
+// @connect maps8.eriecounty.oh.gov
+// @connect mapsdev.hamiltontn.gov
+// @connect mapserv.cityofloveland.org
+// @connect mapserv.mesquitenv.gov
+// @connect mapservice.nmstatelands.org
+// @connect mapservices.gis.saccounty.net
+// @connect mapservices.gov.yk.ca
+// @connect mapservices.pasda.psu.edu
+// @connect mapservices.santacruzcountyaz.gov
+// @connect mapservices.sccgov.org
+// @connect mapservices.weather.noaa.gov
+// @connect mapservices1.jeffco.us
+// @connect mapservices2.jeffco.us
+// @connect mariesgis.integritygis.com
+// @connect mariongis.integritygis.com
+// @connect mcdonaldgis.integritygis.com
+// @connect mcgis.mesacounty.us
+// @connect mcgis.mohave.gov
+// @connect mcgis4.monroecounty-fl.gov
+// @connect mcmap.montrosecounty.net
+// @connect mcogis.co.marion.oh.us
+// @connect millergis.integritygis.com
+// @connect mms.hursttx.gov
+// @connect mndotgis.dot.state.mn.us
+// @connect moberlygis.integritygis.com
+// @connect mobile.alamedaca.gov
+// @connect moniteaugis.integritygis.com
+// @connect morgangis.integritygis.com
+// @connect msdisweb.missouri.edu
+// @connect mycity2.houstontx.gov
+// @connect navigator.state.or.us
+// @connect ndgishub.nd.gov
+// @connect newtongis.integritygis.com
+// @connect nhgeodata.unh.edu
+// @connect northlake.halff.com
+// @connect nsgiwa.novascotia.ca
+// @connect nspdcwebsrv.csuchico.edu
+// @connect oak.co.lake-of-the-woods.mn.us
+// @connect oc17maps.co.oconto.wi.us
+// @connect ocgis4.ocfl.net
+// @connect oncorng.co.ontario.ny.us
+// @connect operationserver.ci.henderson.nc.us
+// @connect orfmaps.norfolk.gov
+// @connect osagegis.integritygis.com
+// @connect pagis.org
+// @connect pamap.putnam-fl.gov
+// @connect parcelmap.ashtabulacounty.us
+// @connect parcels.rsdigital.com
+// @connect parcelviewer.geodecisions.com
+// @connect pascogis.pascocountyfl.net
+// @connect pgis.plantation.org
+// @connect phelpsgis.integritygis.com
+// @connect polaris2.mecklenburgcountync.gov
+// @connect polkgis.integritygis.com
+// @connect portal.carolinabeach.org
+// @connect portal.carson.org
+// @connect portal.henrico.us
+// @connect programs.iowadnr.gov
+// @connect propaccess.wadtx.com
+// @connect propertyviewer.andersoncountysc.org
+// @connect proxy2.roktech.net
+// @connect psportal.harrisoncountywv.com
+// @connect pubgis.ci.lubbock.tx.us
+// @connect public.co.wasco.or.us
+// @connect public1.co.waupaca.wi.us
+// @connect publicmap01.co.st-clair.il.us
+// @connect publicmaps.txkusa.org
+// @connect pulaskigis.integritygis.com
+// @connect putnamcountygis.com
+// @connect pwmaps.cityofloveland.org
+// @connect pwmaps.reno.gov
+// @connect rallsgis.integritygis.com
+// @connect raygis.integritygis.com
+// @connect rc-arcgis01.co.rice.mn.us
+// @connect rdsgis.nctgis.nct911.org
+// @connect renogis3.renogov.org
+// @connect roads.udot.utah.gov
+// @connect rockgis.co.rock.wi.us
+// @connect rockgis.rockfordil.gov
+// @connect romefloyd.agdmaps.com
+// @connect rptsgisweb.oswegocounty.com
+// @connect salinegis.integritygis.com
+// @connect saludacountysc.net
+// @connect scgis.summitoh.net
+// @connect scgisa.starkcountyohio.gov
+// @connect sdgis.sd.gov
+// @connect secure.boonecountygis.com
+// @connect sedaliagis.integritygis.com
+// @connect see-eldorado.edcgov.us
+// @connect server.boundarycountyid.org
+// @connect server1.mapxpress.net
+// @connect server2.mapxpress.net
+// @connect services.arcgis.com
+// @connect services.gis.ca.gov
+// @connect services.gisqatar.org.qa
+// @connect services.mh-gis.com
+// @connect services.nconemap.gov
+// @connect services.putnamco.org
+// @connect services.sagis.org
+// @connect services.wvgis.wvu.edu
 // @connect services1.arcgis.com
 // @connect services2.arcgis.com
+// @connect services2.integritygis.com
 // @connect services3.arcgis.com
 // @connect services5.arcgis.com
 // @connect services6.arcgis.com
+// @connect services7.arcgis.com
 // @connect services8.arcgis.com
 // @connect services9.arcgis.com
-// @connect geohidroinformatica.itaipu.gov.py
-// @connect geobosques.pti.org.py
-// @connect catastro.gov.py
-// @connect geo1.skycop.com.py
-// @connect sigcosiplan.unasursg.org
-// @connect snmf.infona.gov.py
-// @connect 190.52.167.121
-// @connect sedac.ciesin.columbia.edu
-// @connect 190.128.205.76
-// @connect wwf-sight-maps.org
-// @connect www.geosur.info
-// @connect a.mapillary.com
-// @connect geoshape.unasursg.org
-// @connect geo-ide.carto.com
-// @connect 201.217.59.143
-// @connect pese.pti.org.py
-// @connect geo.pti.org.py
-// @connect www.mapadeasentamientos.org.py
-// @connect gis-gfw.wri.org
-// @connect opengeo.pol.una.py
-// @connect gis.mic.gov.py
-// @connect vigisalud.gov.py
-// @connect mapaescolar.mec.gov.py
-// @connect apps.mades.gov.py
-// @connect www.mopc.gov.py
+// @connect showlowmaps.com
+// @connect skyview.hornershifrin.com
+// @connect slcgis.stlucieco.gov
+// @connect slco.org
+// @connect smgis.sanmarcostx.gov
+// @connect smithvillegis.integritygis.com
+// @connect smpesri.scdot.org
+// @connect socogis.sonomacounty.ca.gov
+// @connect spatial.gishost.com
+// @connect spatial.jacksoncountyor.gov
+// @connect spatialags.vhb.com
+// @connect stclairgis.integritygis.com
+// @connect stmgis.stmarysmd.com
+// @connect stokescountygis.com
+// @connect stonegis.integritygis.com
+// @connect svr4.sumtercountysc.org
+// @connect tcgisws.tooeleco.gov
+// @connect tcweb.co.teller.co.us
+// @connect tfportal.tfid.org
+// @connect tharcgis2.thewoodlands-tx.gov
+// @connect tigerweb.geo.census.gov
+// @connect tiogagis.tiogacountypa.us
+// @connect tnmap.tn.gov
+// @connect tpwd.texas.gov
+// @connect tsc-gis-ags101a.schneidercorp.com
+// @connect twu.newedgeservices.com
+// @connect utility.arcgis.com
+// @connect vernongis.integritygis.com
+// @connect vginmaps.vdem.virginia.gov
+// @connect vtransmap01.aot.state.vt.us
+// @connect wallawallagis.com
+// @connect warrengis.integritygis.com
+// @connect wcg-gisweb.co.worcester.md.us
+// @connect wcgis3.co.winnebago.wi.us
+// @connect wcgisweb.washoecounty.us
+// @connect wcoh.geopowered.com
+// @connect web.binghamid.gov
+// @connect web2.co.ottertail.mn.us
+// @connect web2.kcsgis.com
+// @connect web3.kcsgis.com
+// @connect web4.kcsgis.com
+// @connect web5.kcsgis.com
+// @connect webadaptor.glynncounty-ga.gov
+// @connect webgis.bedfordcountyva.gov
+// @connect webgis.co.davidson.nc.us
+// @connect webgis.co.humboldt.ca.us
+// @connect webgis.durhamnc.gov
+// @connect webgis.lafayetteassessor.com
+// @connect webgis.providenceri.gov
+// @connect webgis.waterburyct.org
+// @connect webgis.yorbalindaca.gov
+// @connect webmap.co.jackson.ms.us
+// @connect webmap.jeffparish.net
+// @connect webmap.trueautomation.com
+// @connect webmaps.elkgrovecity.org
+// @connect webmaps.sjcounty.net
+// @connect webportal.co.marquette.wi.us
+// @connect websrv31.clallamcountywa.gov
+// @connect webstergis.integritygis.com
+// @connect wfs.ksdot.org
+// @connect wfs.schneidercorp.com
+// @connect wvsams.mapwv.org
+// @connect ww1.bucoks.com
+// @connect www.1stdistrict.org
+// @connect www.adacountyassessor.org
+// @connect www.adamscountyarcserver.com
+// @connect www.ancgis.com
+// @connect www.bartowgis.org
+// @connect www.bcgis.com
+// @connect www.bcpao.us
+// @connect www.centralilmaps.com
+// @connect www.cmbgis.com
+// @connect www.colesco.illinois.gov
+// @connect www.ctgismaps2.ct.gov
+// @connect www.denvergov.org
+// @connect www.dmcwebgis.com
+// @connect www.efsedge.com
+// @connect www.finneycountygis.com
+// @connect www.franklinmo.net
+// @connect www.gcgis.org
+// @connect www.gfgis.com
+// @connect www.gis.hctx.net
+// @connect www.gis.sjcfl.us
+// @connect www.gismidwest.com
+// @connect www.gisonline.ms.gov
+// @connect www.greenwoodsc.gov
+// @connect www.hernandocountygis-florida.us
+// @connect www.hogarcmaps.org
+// @connect www.horrycountysc.gov
+// @connect www.landmarkgeospatial.com
+// @connect www.laurenscountygis.org
+// @connect www.mcgisweb.org
+// @connect www.mchenrycountygis.org
+// @connect www.midmogis.org
+// @connect www.monroegis.org
+// @connect www.mymanatee.org
+// @connect www.ocgis.com
+// @connect www.portlandmaps.com
+// @connect www.sciotocountyengineer.org
+// @connect www.semogis.com
+// @connect www.sgrcmaps.com
+// @connect www.sjmap.org
+// @connect www.skagitcounty.net
+// @connect www.smithcountymapsite.org
+// @connect www.tgisites.com
+// @connect www.valorgis.com
+// @connect www.waynecounty.com
+// @connect www.webgis.net
+// @connect www.yamhillcountygis.com
+// @connect www1.cityofwebster.com
+// @connect www2.ci.lancaster.oh.us
+// @connect www2.pottcounty.org
+// @connect www3.multco.us
+// @connect www7.co.union.oh.us
+// @connect xara1-4.cityofpetaluma.net
+// @connect xmaps.indy.gov
 // ==/UserScript==
 
 /* global WazeWrap */
@@ -69,9 +1155,7 @@
   'use strict';
 
   const SHOW_UPDATE_MESSAGE = true;
-  const SCRIPT_VERSION_CHANGES = [
-    'SDK Performance and Stability Update: We have made improvements to enhance your experience. If you encounter any issues, please report them on Discord or Discuss forums.',
-  ];
+  const SCRIPT_VERSION_CHANGES = ['Major update: migrated to the WME SDK. If you find issues, please report them in Discord or Discuss.'];
 
   // **************************************************************************************************************
   // IMPORTANT: Update this when releasing a new version of script that includes changes to the spreadsheet format
@@ -85,21 +1169,13 @@
   // const UPDATE_MESSAGE = `<ul>${[
   //     'Added ability to shift layers. Right click a layer in the list to bring up the layer settings window.'
   // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
-  const GF_URL = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers';
+  const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
   // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
-  const SCRIPT_AUTHOR = 'ancho85'; // MapOMatic is the original author, but he won't fix any Paraguay related issues
+  const SCRIPT_AUTHOR = 'MapOMatic';
   // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
-  const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1aePOmux2IBxE_2CGPOequGnubr9g4hWr1wH_qAjcM24/values/layerDefs';
-  const API_KEY = 'UVVsNllWTjVSSEJvYm5sQ05FdElNa3BqV1RBMFZtZHRSMDFRYm5Ca1ZURkZNRGRIYUVkbg==';
-  const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226={username}';
-  const DEC = s => atob(atob(s));
+  const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852={username}';
   const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
-  // const COUNTRIES = {
-  //     'United States': {
-  //         sheetId: '1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw',
-  //         sheetLayerRange: 'layerDefs'
-  //     }
-  // };
+
   const DEFAULT_LAYER_NAME = 'GIS Layers - Default';
   const ROAD_LAYER_NAME = 'GIS Layers - Roads';
   const DEFAULT_STYLE = {
@@ -178,14 +1254,7 @@
       fillOpacity: 0,
       strokeColor: '#f7f',
       fontColor: '#f7f',
-      },
-      water: {
-          fillOpacity: 1,
-          strokeColor: '#13a1dd',
-          fillColor: '#13a1dd',
-          fontColor: '#13a1dd',
-          fontWeight: 'bold'
-      },
+    },
   };
   let ROAD_STYLE;
   function initRoadStyle() {
@@ -236,60 +1305,98 @@
   };
 
   let _gisLayers = [];
+  let _whatsInView = {};
+  const alreadyLoadedCountries = new Set();
+  const alreadyLoadedSubL1 = new Set();
+  const WmeGisLBBOX = new wmeGisLBBOX(); // Create and reuse this instance as wmeGisLBBOX uses an instance-level cache (i.e., this.cache)
+  let countrySubdivisionMapping = {};
 
-  const _layerRefinements = [
-    {
-      id: 'us-post-offices',
-      labelHeaderFields: ['LOCALE_NAME'],
-    },
-  ];
+  /**
+   * Asynchronously builds a mapping from 'country-subdivision' identifiers to their respective names.
+   *
+   * This function retrieves country and subdivision data using the `WmeGisLBBOX.getCountriesAndSubsJson()` method.
+   * It then iterates over the retrieved data to construct a mapping object where each key is a combination of
+   * country and subdivision IDs, and the value is the corresponding name formatted as 'countryId - subdivisionName'.
+   *
+   * The mapping includes:
+   * - Each country with a key in the format 'countryId-countryId' and its name.
+   * - Each subdivision with a key in the format 'countryId-subdivisionId' and its name.
+   *
+   * @returns {Promise<Object>} A promise that resolves to an object representing the mapping of country and subdivision identifiers to names.
+   */
+  async function buildCountrySubdivisionMapping() {
+    const countriesAndSubs = await WmeGisLBBOX.getCountriesAndSubsJson();
+    for (const [countryId, countryData] of Object.entries(countriesAndSubs)) {
+      const countryName = countryData.name;
 
-  const STATES = {
-    _states: [
-      ['PRY (Pais)', 'PRY', -1],
-      ['Asuncion (Capital)', 'ASU', 0],
-      ['Concepcion', 'CON', 1],
-      ['San Pedro', 'SAN', 2],
-      ['Cordillera', 'COR', 3],
-      ['Guaira', 'GUA', 4],
-      ['Caaguazu', 'CAG', 5],
-      ['Caazapa', 'CAZ', 6],
-      ['Itapua', 'ITA', 7],
-      ['Misiones', 'MIS', 8],
-      ['Paraguari', 'PAR', 9],
-      ['Alto Parana', 'ANA', 10],
-      ['Central', 'CEN', 11],
-      ['Neembucu', 'NEE', 12],
-      ['Amambay', 'AMA', 13],
-      ['Canindeyu', 'CAN', 14],
-      ['Presidente Hayes', 'PHA', 15],
-      ['Boqueron', 'BOQ', 16],
-      ['Alto Paraguay', 'AAY', 17],
-    ],
-    toAbbr(fullName) {
-      return this._states.find((a) => a[0] === fullName)?.[1]; // Returns undefined if not found
+      // Add country itself with key 'countryId-countryId'
+      countrySubdivisionMapping[`${countryId}`] = countryName;
+      countrySubdivisionMapping[`${countryId}-${countryId}`] = `${countryId} - ${countryName}`;
+
+      if (countryData.subL1) {
+        for (const [subId, subData] of Object.entries(countryData.subL1)) {
+          const subName = subData.name;
+          const key = `${countryId}-${subId}`;
+          const value = `${countryId} - ${subName}`;
+          countrySubdivisionMapping[key] = value;
+        }
+      }
+    }
+    return countrySubdivisionMapping;
+  }
+
+  /**
+   * Helper object for managing mappings between country-subdivision keys and their full names.
+   *
+   * The `NameMapper` object provides utility functions to convert between full names and keys,
+   * and to retrieve arrays of all keys or names within the `countrySubdivisionMapping`.
+   */
+  const NameMapper = {
+    /**
+     * Converts a full name to its corresponding key ('country-subdivision').
+     *
+     * @param {string} fullName - The full name to be converted.
+     * @returns {string|undefined} The key corresponding to the given full name, or undefined if not found.
+     */
+    toKey(fullName) {
+      // Attempt to find a matching key using the value from the mapping.
+      return Object.entries(countrySubdivisionMapping).find(([key, value]) => value === fullName)?.[0];
     },
-    toFullName(abbr) {
-      return this._states.find((a) => a[1] === abbr)?.[0]; // Returns undefined if not found
+
+    /**
+     * Converts a key ('country-subdivision') to its corresponding full name.
+     *
+     * @param {string} key - The key to be converted.
+     * @returns {string|undefined} The full name corresponding to the given key, or undefined if not found.
+     */
+    toFullName(key) {
+      return countrySubdivisionMapping[key];
     },
+
+    /**
+     * Retrieves an array of all full names in the `countrySubdivisionMapping`.
+     *
+     * @returns {Array<string>} An array containing all full names.
+     */
     toFullNameArray() {
-      return this._states.map((a) => a[0]);
+      return Object.values(countrySubdivisionMapping);
     },
-    toAbbrArray() {
-      return this._states.map((a) => a[1]);
-    },
-    fromId(id) {
-      return this._states.find((a) => a[2] === id); // Returns undefined if not found
+
+    /**
+     * Retrieves an array of all keys ('country-subdivision') in the `countrySubdivisionMapping`.
+     *
+     * @returns {Array<string>} An array containing all keys.
+     */
+    toKeyArray() {
+      return Object.keys(countrySubdivisionMapping);
     },
   };
+
   const DEFAULT_VISIBLE_AT_ZOOM = 18;
-  const SETTINGS_STORE_NAME = 'wme_gis_layers';
-  const COUNTIES_URL = 'https://analisis.stp.gov.py:443/user/ine/api/v2/';
-  // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
-  const COUNTIES_URL2 = 'https://services2.arcgis.com/Xim64FzemN4fqY1y/ArcGIS/rest/services/PY_Departamentos_y_Municipios/FeatureServer/0';
+  const SETTINGS_STORE_NAME = 'wme_gis_layers_fl';
   const scriptName = GM_info.script.name;
   const scriptVersion = GM_info.script.version;
-  const downloadUrl = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
+  const downloadUrl = 'https://greasyfork.org/scripts/369632-wme-gis-layers/code/WME%20GIS%20Layers.user.js';
   const sdk = await bootstrap({ scriptUpdateMonitor: { downloadUrl } });
   let settings = {};
   let ignoreFetch = false;
@@ -499,6 +1606,7 @@
     }
 
     #shiftLayerFeatures(x, y) {
+      // JS55CT Given the inputs have been updated to Degrees, shifting my meeters still make sence and works.
       const { isRoadLayer } = this.gisLayer;
       let featureCollection = isRoadLayer ? roadFeatures : defaultFeatures;
       const { distance, bearing } = LayerSettingsDialog.#calculateDistanceAndBearing(x, y);
@@ -548,7 +1656,8 @@
       lastVersion: null,
       visibleLayers: [],
       onlyShowApplicableLayers: false,
-      selectedStates: [],
+      onlyShowApplicableLayersZoom: false,
+      selectedSubL1: [],
       enabled: true,
       fillParcels: false,
       oneTimeAlerts: {},
@@ -657,39 +1766,14 @@
     if (gisLayer.distinctFields) {
       fields = fields.concat(gisLayer.distinctFields);
     }
-    let url = "";
-    if (gisLayer.isFeatureSet) {
-        url = gisLayer.url; // no extra filters for this resource (caching)
-    } else if (gisLayer.serverType == "GeoNode"){
-        url = gisLayer.url;
-        url += `&CRS=EPSG:${geometry.spatialReference.latestWkid}`;
-        if (gisLayer.where){
-            var geom_field = gisLayer.cql_the_geom ? gisLayer.cql_the_geom : "the_geom"; //some geom fields are called simply 'geom'
-            var where = `(bbox(${geom_field},${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},'EPSG:${geometry.spatialReference.latestWkid}') and ${gisLayer.where})`;
-            url += `&cql_filter=${encodeURIComponent(where)}`;
-        } else {
-            url += `&bbox=${geometry.xmin},${geometry.ymin},${geometry.xmax},${geometry.ymax},EPSG:${geometry.spatialReference.latestWkid}`;
-        }
-        url += `&srsName=EPSG:${geometry.spatialReference.latestWkid}&outputFormat=${gisLayer.output? gisLayer.output : "application/json"}`;
-    } else if (gisLayer.serverType == "CartoDB"){
-         // url with query format 'SELECT the_geom_webmercator AS the_geom FROM user.table_name'
-        url =`${gisLayer.url} WHERE ST_Intersects(ST_SetSRID(ST_MakeBox2D(ST_Point(${extent.left},${extent.top}),ST_Point(${extent.right},${extent.bottom})),3857),the_geom_webmercator)`;
-        if (fields.length){
-            url = url.replace("the_geom_webmercator AS the_geom", `the_geom_webmercator AS the_geom%2C${encodeURIComponent(fields.join(','))}`)
-        }
-        if (gisLayer.where){
-            url += `AND ${gisLayer.where}`;
-        }
-        url += '&format=GeoJSON'
-    } else { //default ArcGIS server
-      url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
-      url += gisLayer.token ? `&token=${gisLayer.token}` : '';
-      url += `&outFields=${encodeURIComponent(fields.join(','))}`;
-      url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
-      url += `&inSR=${/* gisLayer.spatialReference ? gisLayer.spatialReference : */ '4326'}`;
-      url += '&outSR=4326&f=json';
-      url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
-    }
+    let url = `${gisLayer.url}/query?geometry=${encodeURIComponent(geometryStr)}`;
+    url += gisLayer.token ? `&token=${gisLayer.token}` : '';
+    url += `&outFields=${encodeURIComponent(fields.join(','))}`;
+    url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
+    url += `&inSR=${/* gisLayer.spatialReference ? gisLayer.spatialReference : */ '4326'}`; //102100   4326 = WGS84
+    url += '&outSR=4326&f=json'; //3857
+    url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
+
     logDebug(`Request URL: ${url}`);
     return url;
   }
@@ -707,10 +1791,23 @@
     return hash;
   }
 
+  /**
+   * The function `getMapExtent` retrieves the map extent coordinates in the WGS84 projection.
+   *
+   * @param [projection='wgs84'] - The `projection` parameter allows you to specify the name for the WGS84
+   * projection you wish to use when obtaining the map extent. Acceptable values include 'wgs84',
+   * 'CRS84', '4326', and 'EPSG:4326'.
+   *
+   * @returns {Array} An array containing the WGS84 projection coordinates representing the map extent,
+   * structured as [leftBottomLongitude, leftBottomLatitude, rightTopLongitude, rightTopLatitude].
+   *
+   * @throws Will throw an error if an unsupported projection type is specified.
+   */
   function getMapExtent(projection = 'wgs84') {
     const wgs84Extent = sdk.Map.getMapExtent(); // Assume this provides WGS84 coordinates
     const wgs84LeftBottom = [wgs84Extent[0], wgs84Extent[1]];
     const wgs84RightTop = [wgs84Extent[2], wgs84Extent[3]];
+
     const wgs84Projections = ['wgs84', 'CRS84', '4326', 'EPSG:4326'];
 
     if (wgs84Projections.includes(projection.toLowerCase())) {
@@ -720,32 +1817,17 @@
     }
   }
 
-  function getArcGisMapExtentGeometry() {
-    const extent = getMapExtent('wgs84');
-    const geometry = {
-      xmin: extent[0],
-      ymin: extent[1],
-      xmax: extent[2],
-      ymax: extent[3],
-      spatialReference: {
-        wkid: 4326,
-      },
-    };
-    return geometry;
-  }
-
-  function getCountiesUrl() {
-    const geometry = getArcGisMapExtentGeometry();
-    const url = `${COUNTIES_URL2}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
-    return `${url}&outFields=NAME as BASENAME%2CCODE as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects` + '&geometryType=esriGeometryEnvelope&inSR=4326&outSR=4326&f=json';
-  }
-
-  let _countiesInExtent = [];
-  let _statesInExtent = [];
   function getGisLayerVisibleAtZoom(gisLayer) {
+    // Fetch override settings
     const overrideVisibleAtZoom = settings.getLayerSetting(gisLayer.id, 'visibleAtZoom');
-    if (overrideVisibleAtZoom) return overrideVisibleAtZoom;
-    return gisLayer.hasOwnProperty('visibleAtZoom') ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM;
+    if (overrideVisibleAtZoom) {
+      return overrideVisibleAtZoom;
+    }
+    // Check if the layer has its own 'visibleAtZoom'
+    if (gisLayer.hasOwnProperty('visibleAtZoom')) {
+      return gisLayer.visibleAtZoom;
+    }
+    return DEFAULT_VISIBLE_AT_ZOOM;
   }
 
   function getGisLayerLabelsVisibleAtZoom(gisLayer, layerVisibleAtZoom) {
@@ -760,69 +1842,167 @@
     return labelsVisibleAtZoom;
   }
 
-  function getFetchableLayers(getInvisible) {
+  /**
+   * Asynchronously determines which geographical regions are visible within the current map viewport.
+   *
+   * This function retrieves the current map extent in the WGS84 coordinate system and uses it to form a bounding box.
+   * It then calls the `whatsInView` method from the `WmeGisLBBOX` module to identify intersecting geographical regions
+   * within this bounding box. The analysis includes a high precision intersection check, although GeoJSON data is not returned.
+   *
+   * Process Overview:
+   * 1. Obtains the current map extent using the `getMapExtent` function, specifying the "wgs84" coordinate system.
+   * 2. Converts map extent into a viewport bounding box with properties `minLon`, `minLat`, `maxLon`, and `maxLat`.
+   * 3. Configures `highPrecision` intersection checks to ensure detailed overlap evaluations.
+   * 4. Invokes `WmeGisLBBOX.whatsInView`, passing in the viewport bounding box, precision flag, and setting
+   *    the returnGeoJson flag to false.
+   * 5. Stores the retrieved intersecting regions data in the `_whatsInView` variable.
+   *
+   * Features:
+   * - Handles asynchronous operations to ensure responsive interaction and processing.
+   * - Employs high precision checks for accurate geographical intersection analysis.
+   *
+   * @returns {Promise<void>} - No explicit return; results are indirectly stored in `_whatsInView`.
+   */
+  async function whatsInView() {
+    const extentWgs84 = getMapExtent('wgs84');
+    const highPrecision = true;
+    const viewportBbox = {
+      minLon: extentWgs84[0],
+      minLat: extentWgs84[1],
+      maxLon: extentWgs84[2],
+      maxLat: extentWgs84[3],
+    };
+
+    _whatsInView = await WmeGisLBBOX.whatsInView(viewportBbox, highPrecision, false);
+  }
+
+  /**
+   * Function to determine which GIS layers are fetchable based on multiple conditions.
+   *
+   * @param {boolean} checkVisibility - Indicates whether to apply visibility checks based on settings.
+   * @returns {Array} filteredLayers - An array of GIS layers that have passed all fetchable checks.
+   *
+   * The function performs the following checks:
+   * - Ensure the map is sufficiently zoomed by checking the zoom level from the SDK's map object. Return an empty array if the zoom is below 12.
+   * - Filter through the global GIS layers array (_gisLayers) and:
+   *   1. Check if the layer is enabled.
+   *   2. Validate that the layer has a non-empty and defined URL.
+   *   3. Confirm the country subdivision level 1 for the layer is selected in settings.
+   *   4. If checkVisibility is true, verify if the layer ID is included in the array of visible layers from settings.
+   *   5. Ensure the layer is visible based on its specified zoom level.
+   *   6. Find and validate existence of corresponding country data within the current map view (_whatsInView), identified via ISO_ALPHA3 codes.
+   *   7. Confirm the subdivision level 1 ID or country alpha code matches with the viewed country data (_whatsInView).
+   *   8. If the layer has subdivision level 2 names, further check if subdivision level 2 names are in view as per the stored country subdivision hierarchy (_whatsInView).
+   *
+   * Valid layers passing all checks are added to the fetchableLayers array and the filtered collection is returned.
+   */
+  function getFetchableLayers(checkVisibility = true, checkZoomVisibility = true) {
     const zoom = sdk.Map.getZoomLevel();
-    if (zoom < 12) return [];
-    return _gisLayers.filter((gisLayer) => {
-      const isValidUrl = gisLayer.url && gisLayer.url.trim().length > 0;
-      const isVisible = (getInvisible || settings.visibleLayers.includes(gisLayer.id)) && settings.selectedStates.includes(gisLayer.state);
-      const isInState = gisLayer.state === 'PRY' || _countiesInExtent.some((county) => county.stateInfo[1] === gisLayer.state);
-      // Be sure to use hasOwnProperty when checking this, since 0 is a valid value.
-      const isValidZoom = getInvisible || zoom >= getGisLayerVisibleAtZoom(gisLayer);
-      return isValidUrl && isInState && isVisible && isValidZoom;
-    });
-  }
-
-  function filterLayerCheckboxes() {
-    const applicableLayers = getFetchableLayers(true).filter((layer) => {
-      const hasCounties = layer.hasOwnProperty('counties');
-      return (hasCounties && layer.counties.some((countyName) => _countiesInExtent.some((county) => county.name === countyName.toLowerCase() && layer.state === county.stateInfo[1]))) || !hasCounties;
-    });
-    const statesToHide = STATES.toAbbrArray();
-
-    _gisLayers.forEach((gisLayer) => {
-      const id = `#gis-layer-${gisLayer.id}-container`;
-      if (!settings.onlyShowApplicableLayers || applicableLayers.includes(gisLayer)) {
-        $(id).show();
-        $(`#gis-layers-for-${gisLayer.state}`).show();
-        const idx = statesToHide.indexOf(gisLayer.state);
-        if (idx > -1) statesToHide.splice(idx, 1);
-      } else {
-        $(id).hide();
-      }
-    });
-    if (settings.onlyShowApplicableLayers) {
-      statesToHide.forEach((st) => $(`#gis-layers-for-${st}`).hide());
+    // If zoom level is below 12, log a message and return an empty array, as layers won't be fetched
+    if (zoom < 12) {
+      logDebug(`No layers fetched, zoom level is < 12!`);
+      return [];
     }
-  }
+    const fetchableLayers = []; // Array to hold fetchable layer IDs
+    // Filter the GIS layers based on multiple conditions to determine which are fetchable
+    const filteredLayers = _gisLayers.filter((gisLayer) => {
+      if (gisLayer.enabled !== '1') return false; // Check if the layer is enabled; skip it if not
 
-  function convertFeatureGeometry(gisLayer, featureGeometry) {
-      if (gisLayer.spatialReference) {
-          const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
-          featureGeometry.transform(proj, W.map.getProjectionObject());
+      // Ensure the layer has a valid URL; skip if it is empty or undefined
+      if (!gisLayer.url || gisLayer.url.trim().length === 0) return false;
+
+      // Check if the country subdivision level 1 is selected
+      if (!settings.selectedSubL1.includes(gisLayer.countrySubL1)) return false;
+
+      // Check if the layer ID is saved in settings as visible  - turn off when call from "Only show applicable layers"
+      if (checkVisibility) {
+        if (!settings.visibleLayers.includes(gisLayer.id)) return false;
       }
-      return featureGeometry;
+
+      if (checkZoomVisibility) {
+        if (zoom < getGisLayerVisibleAtZoom(gisLayer)) return false; // Check if the layer is visible at the current zoom level
+      }
+
+      // Find the country data from the current view based on the ISO_ALPHA3 code
+      const countryData = Object.values(_whatsInView).find((countryData) => countryData.ISO_ALPHA3 === gisLayer.country);
+
+      if (!countryData) return false; // Skip if no matching country data is in view
+
+      // Check if the subdivision level 1 (subL1) is in view
+      const isSubL1InView = (gisLayer.subL1 && Object.values(countryData.subL1 || {}).some((subL1Data) => subL1Data.subL1_id === gisLayer.subL1)) || countryData.ISO_ALPHA3 === gisLayer.subL1;
+
+      if (!isSubL1InView) return false; // If subL1 is not in view, skip the layer
+
+      const hasSubL2 = gisLayer.subL2 && gisLayer.subL2.length > 0; // Check if the layer has subdivision level 2 names
+      if (hasSubL2) {
+        // Find the subdivision data entry that matches the layer's subL1 ID
+        const subL1DataEntry = Object.entries(countryData.subL1 || {}).find(([_, subL1Details]) => subL1Details.subL1_id === gisLayer.subL1);
+        const subL1Data = subL1DataEntry && subL1DataEntry[1]; // Retrieve the actual subL1 data object
+        if (!subL1Data) {
+          // If no matching subL1 data is found, skip the layer
+          return false;
+        }
+        // Check if any subL2 names from the layer match those in the subL1 data's subL2 list
+        const isSubL2InView = gisLayer.subL2.some((subL2Name) => subL1Data.subL2 && Object.keys(subL1Data.subL2).some((subL2InView) => subL2InView.toLowerCase() === subL2Name.toLowerCase()));
+        if (!isSubL2InView) return false; // If no subL2 matches are found, skip the layer
+      }
+
+      fetchableLayers.push(gisLayer.id); // If the layer passes all checks, add its ID to the fetchable layers list
+      return true;
+    });
+    return filteredLayers;
   }
 
-  function setStateFullAddress() {
-          if (document.getElementsByClassName("location-info")){
-              var full = document.getElementsByClassName("location-info")[0];
-              if (full != undefined){
-                  var yy = full.innerText;
-                  if (yy.includes("Paraguay")){
-                      var deptos = _statesInExtent.join(', ');
-                      yy = yy.replace(/\[.*\]/g, '');
-                      yy += " [" + deptos + "]";
-                      document.getElementsByClassName("location-info")[0].innerText = yy;
-                  }
-              }
-          }
+  /**
+   * Function to manage the visibility of GIS layer checkboxes based on user-defined settings.
+   *
+   * Utilizes the getFetchableLayers function to determine applicable layers, considering zoom levels specified by settings.onlyShowApplicableLayersZoom.
+   *
+   * The function:
+   * - Fetches layers using getFetchableLayers with settings.onlyShowApplicableLayersZoom to determine which layers are relevant at the current zoom level.
+   * - Iterates over each GIS layer, controlling the display of checkboxes associated with the layers using a computed visibility logic:
+   *   1. Layers are shown if they are deemed applicable by the zoom setting (found in applicableLayers).
+   *   2. All layers are displayed when settings.onlyShowApplicableLayers is turned off, overriding other filters.
+   *   3. Layers are hidden if neither condition applies.
+   *
+   * This setup allows for independent as well as combined operation of the zoom and visibility settings.
+   */
+  function filterLayerCheckboxes() {
+    const applicableLayers = getFetchableLayers(false, settings.onlyShowApplicableLayersZoom);
+    _gisLayers.forEach((gisLayer) => {
+      const layerContainerId = `#gis-layer-${gisLayer.id}-container`;
+      // Default behavior is to hide all layers
+      let showLayer = false;
+      // Show layer if it's included in applicable layers based on the zoom setting
+      if (applicableLayers.includes(gisLayer)) {
+        showLayer = true;
+      }
+      // Show all layers if onlyShowApplicableLayers setting is false
+      if (!settings.onlyShowApplicableLayers) {
+        showLayer = true;
+      }
+      // Apply visibility based on computed showLayer logic
+      if (showLayer) {
+        $(layerContainerId).show();
+        $(`#gis-layers-for-${gisLayer.subL1}`).show();
+      } else {
+        $(layerContainerId).hide();
+        $(`#gis-layers-for-${gisLayer.subL1}`).hide();
+      }
+    });
   }
 
   const ROAD_ABBR = [
-    [/\bAVDA./gi, 'Av.'], [/\bAVENIDA/gi, 'Av.'], [/\bCOURT$/, 'CT'], [/\bDRIVE$/, 'DR'],
-    [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
-    [/\bTERRACE$/, 'TER']
+    [/\bAVENUE$/, 'AVE'],
+    [/\bCIRCLE$/, 'CIR'],
+    [/\bCOURT$/, 'CT'],
+    [/\bDRIVE$/, 'DR'],
+    [/\bLANE$/, 'LN'],
+    [/\bPARK$/, 'PK'],
+    [/\bPLACE$/, 'PL'],
+    [/\bROAD$/, 'RD'],
+    [/\bSTREET$/, 'ST'],
+    [/\bTERRACE$/, 'TER'],
   ];
 
   const labelProcessingGlobalVariables = {
@@ -857,23 +2037,16 @@
 
   function processLabel(gisLayer, item, displayLabelsAtZoom, area, isPolyLine = false) {
     let label = '';
-    let attrs = [];
-    if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
-        attrs = item.properties;
-    } else if (["RawPointData"].indexOf(gisLayer.serverType) >= 0) {
-        attrs = item;
-    } else {
-        attrs = item.attributes;
-    }
     if (gisLayer.labelHeaderFields) {
       label = `${gisLayer.labelHeaderFields
-        .map((fieldName) => attrs[fieldName])
+        .map((fieldName) => item.attributes[fieldName])
         .join(' ')
         .trim()}\n`;
     }
-    if (sdk.Map.getZoomLevel() >= displayLabelsAtZoom || area >= 1000000) { // Raised this 1 million sq meeters
+    if (sdk.Map.getZoomLevel() >= displayLabelsAtZoom || area >= 1000000) {
+      // Raised this 1 million sq meeters
       label += gisLayer.labelFields
-        .map((fieldName) => attrs[fieldName])
+        .map((fieldName) => item.attributes[fieldName])
         .join(' ')
         .trim();
       if (gisLayer.processLabel) {
@@ -881,7 +2054,7 @@
           label = 'ERROR';
         } else {
           labelProcessingGlobalVariables.label = label;
-          labelProcessingGlobalVariables.fieldValues = attrs;
+          labelProcessingGlobalVariables.fieldValues = item.attributes;
           const result = ESTreeProcessor.execute(gisLayer.processLabel, labelProcessingGlobalVariables);
           label = result.output?.trim() ?? '';
         }
@@ -923,20 +2096,7 @@
       logError(`Error in layer "${gisLayer.name}": ${data.error.message}`);
       $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
     } else {
-      let items = data.features || [];
-      if (gisLayer.isFeatureSet){
-          // storing result as cache if not already there
-          if (!sessionStorage.getItem(gisLayer.id)){
-              sessionStorage.setItem(gisLayer.id, JSON.stringify(data));
-          }
-          if (gisLayer.isFeatureSet == 1) {
-              items = data.layers[0].featureSet.features;
-          } else if (gisLayer.isFeatureSet == 2){ // 2 is for GeoNode
-              items = data.features;
-          } else if (gisLayer.isFeatureSet == 3){ // RawData
-              items = data;
-        }
-      };
+      const items = data.features || [];
       if (!token.cancel) {
         let error = false;
         const distinctValues = [];
@@ -1071,89 +2231,6 @@
                     }
                     features.push(feature);
                   });
-	            } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
-                  //TODO: turf and featuresToAdd not being called later for these elements...
-                  if (item.geometry.type == "GeometryCollection") {
-                    let props = item.properties;
-                    item = item.geometry.geometries[0];
-                    item.geometry = item;
-                    item.properties = props;
-                  }
-                  if (item.geometry.type == "Point") {
-                    featureGeometry = new OpenLayers.Geometry.Point(
-                      item.geometry.coordinates[0] + layerOffset.x,
-                      item.geometry.coordinates[1] + layerOffset.y
-                    );
-                  } else if (item.geometry.type == "MultiPoint") {
-                    const rings = [];
-                    const pnts = [];
-                    item.geometry.coordinates.forEach(ringIn => {
-                      pnts.push(new OpenLayers.Geometry.Point(
-                        ringIn[0] + layerOffset.x,
-                        ringIn[1] + layerOffset.y
-                       ));
-                    });
-                    rings.push(new OpenLayers.Geometry.LinearRing(pnts));
-                    featureGeometry = new OpenLayers.Geometry.Polygon(rings);
-                  } else if (item.geometry.type == "Polygon") {
-                    const rings = [];
-                    item.geometry.coordinates.forEach(ringIn => {
-                      const pnts = [];
-                      for (let i = 0; i < ringIn.length; i++) {
-                        pnts.push(new OpenLayers.Geometry.Point(
-                          ringIn[i][0] + layerOffset.x,
-                          ringIn[i][1] + layerOffset.y
-                        ));
-                      }
-                      rings.push(new OpenLayers.Geometry.LinearRing(pnts));
-                    });
-                    featureGeometry = new OpenLayers.Geometry.Polygon(rings);
-                    if (gisLayer.areaToPoint) {
-                      featureGeometry = featureGeometry.getCentroid();
-                    } else {
-                      area = featureGeometry.getArea();
-                      }
-                  } else if (item.geometry.type == "MultiPolygon") {
-                    const source = item.geometry.coordinates[0];
-                    const polygonList = [];
-                    for (var i = 0; i < source.length; i += 1) {
-                      const pointList = [];
-                      for (var j = 0; j < source[i].length; j += 1) {
-                        var point = new OpenLayers.Geometry.Point(
-                          source[i][j][0],
-                          source[i][j][1]
-                        );
-                        pointList.push(point);
-                      }
-                      var linearRing = new OpenLayers.Geometry.LinearRing(pointList);
-                      var polygon = new OpenLayers.Geometry.Polygon([linearRing]);
-                      polygonList.push(polygon);
-                    }
-                      featureGeometry = new OpenLayers.Geometry.MultiPolygon(polygonList);
-                  } else if (item.geometry.type == "MultiLineString") {
-                    const pointList = [];
-                    item.geometry.coordinates.forEach(path => {
-                      path.forEach(point => pointList.push(new OpenLayers.Geometry.Point(
-                        point[0] + layerOffset.x,
-                        point[1] + layerOffset.y
-                      )));
-                    });
-                    featureGeometry = new OpenLayers.Geometry.LineString(pointList);
-                    featureGeometry.skipDupeCheck = true;
-                  } else if (item.geometry.type == "LineString") {
-                    const pointList = [];
-                    item.geometry.coordinates.forEach(point => {
-                      pointList.push(new OpenLayers.Geometry.Point(
-                        point[0] + layerOffset.x,
-                        point[1] + layerOffset.y
-                      ));
-                    });
-                    featureGeometry = new OpenLayers.Geometry.LineString(pointList);
-                  }
-                  featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
-                } else if (["RawPointData",].indexOf(gisLayer.serverType) >= 0){
-                  featureGeometry = new OpenLayers.Geometry.Point(item[`${gisLayer.processLon}`] + layerOffset.x, item[`${gisLayer.processLat}`] + layerOffset.y);
-                  featureGeometry = convertFeatureGeometry(gisLayer, featureGeometry);
                 } else {
                   logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                   logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
@@ -1696,132 +2773,113 @@
     });
   }
 
-  function fetchFeatures() {
-    if (!settings.enabled) return;
+  /**
+   * Asynchronously fetches GIS features based on the current map viewport and user interaction settings.
+   *
+   * This function coordinates the fetching of geographical layers mapped to the current viewport. It clears previous
+   * labels if a popup is visible, checks zoom level constraints to optimize fetch operations, and updates the layer
+   * visibility accordingly. The function initiates web requests for each visible and fetchable layer based on the user's
+   * interaction and browser state settings.
+   *
+   * Process Overview:
+   * 1. Clears label references if a popup is visible and returns early if fetching is ignored or zoom level is low.
+   * 2. Calls `whatsInView` to ascertain which geographical areas are visible within the current bounds.
+   * 3. Initializes token mechanism to track fetch processes and cancellation flags. Updates visual styling cues.
+   * 4. Identifies layers eligible for fetching and removes features not mapped.
+   * 5. Filters visible layers based on selections and logs the number slated for fetching.
+   * 6. Iterates over each layer, constructing HTTP requests using their extent and fetching data asynchronously.
+   *    - Handles successful responses by processing features and updates popup if required.
+   *    - Logs and handles errors encountered during HTTP requests, ensuring robust error management.
+   *
+   * Features:
+   * - Integrates zoom level and feature checks to optimize fetch operations, avoiding unnecessary requests.
+   * - Provides error and debugging output to track the processing flow and exceptions.
+   *
+   * Parameters:
+   * - No explicit parameters; utilizes global state and map interaction contexts.
+   *
+   * Error Handling:
+   * - Logs HTTP request errors and feature processing issues to assist in debugging operations.
+   *
+   * @returns {Promise<void>} - No explicit return; operates based on side effects affecting global state.
+   */
+  async function fetchFeatures() {
     if (isPopupVisible) {
       Object.keys(layerLabels).forEach((key) => delete layerLabels[key]);
     }
     if (ignoreFetch) return;
     if (sdk.Map.getZoomLevel() < 12) {
-      filterLayerCheckboxes();
+      //filterLayerCheckboxes();
       return;
     }
+    await whatsInView();
     lastToken.cancel = true;
     lastToken = { cancel: false, features: [], layersProcessed: 0 };
-    $('.gis-state-layer-label').css({ color: '#777' });
-
+    $('.gis-subL1-layer-label').css({ color: '#777' });
     let _layersCleared = false;
+    let layersToFetch; // Start with declaration
+    if (!_layersCleared) {
+      _layersCleared = true;
+      layersToFetch = getFetchableLayers(true, true);
 
-    // if (layersToFetch.length) {
-    const extentWGS84 = getMapExtent('wgs84');
-    GM_xmlhttpRequest({
-      url: getCountiesUrl(extentWGS84),
-      method: 'GET',
-      onload(res) {
-        if (res.status < 400) {
-          const data = $.parseJSON(res.responseText);
-          if (data.error) {
-            logError(`Error in PY Census counties data: ${data.error.message}`);
-          } else {
-            _countiesInExtent = data.features.map((feature) => {
-              const name = feature.attributes.BASENAME.toLowerCase();
-              const stateInfo = STATES.fromId(parseInt(feature.attributes.STATE, 10));
-              return { name, stateInfo };
-            });
-            logDebug(`PY Census counties: ${_countiesInExtent.map((c) => `${c.name} ${c.stateInfo[1]}`).join(', ')}`);
-            _statesInExtent = _.uniq(data.features.map(
-                 // eslint-disable-next-line radix
-                 feature => STATES.fromId(parseInt(feature.attributes.STATE, 10))[0]
-            ));
-            setStateFullAddress();
+      // Remove features of any layers that won't be mapped.
+      _gisLayers.forEach((gisLayer) => {
+        if (!layersToFetch.includes(gisLayer)) {
+          let featureCollection = gisLayer.isRoadLayer ? roadFeatures : defaultFeatures;
+          const layerName = gisLayer.isRoadLayer ? ROAD_LAYER_NAME : DEFAULT_LAYER_NAME;
+          const featureIds = featureCollection.filter((f) => f.properties.layerID === gisLayer.id).map((f) => f.id);
+          if (featureIds.length) {
+            sdk.Map.removeFeaturesFromLayer({ layerName, featureIds });
+            featureCollection = featureCollection.filter((f) => !featureIds.includes(f.id));
+            if (gisLayer.isRoadLayer) {
+              roadFeatures = featureCollection;
+            } else {
+              defaultFeatures = featureCollection;
+            }
+          }
+        }
+      });
+    }
+    filterLayerCheckboxes();
+    logDebug(`Fetching ${layersToFetch.length} layers...`);
+    logDebug(layersToFetch);
+    let layersProcessedCount = 0; // Track processed layers
+    const extentWGS84 = getMapExtent('wgs84'); //extentMercator = getMapExtent('mercator');
 
-            let layersToFetch;
-            if (!_layersCleared) {
-              _layersCleared = true;
-              layersToFetch = getFetchableLayers();
-
-              // Remove features of any layers that won't be mapped.
-              _gisLayers.forEach((gisLayer) => {
-                if (!layersToFetch.includes(gisLayer)) {
-                  let featureCollection = gisLayer.isRoadLayer ? roadFeatures : defaultFeatures;
-                  const layerName = gisLayer.isRoadLayer ? ROAD_LAYER_NAME : DEFAULT_LAYER_NAME;
-                  const featureIds = featureCollection.filter((f) => f.properties.layerID === gisLayer.id).map((f) => f.id);
-                  if (featureIds.length) {
-                    sdk.Map.removeFeaturesFromLayer({ layerName, featureIds });
-                    featureCollection = featureCollection.filter((f) => !featureIds.includes(f.id));
-                    if (gisLayer.isRoadLayer) {
-                      roadFeatures = featureCollection;
-                    } else {
-                      defaultFeatures = featureCollection;
-                    }
-                  }
-                }
-              });
+    layersToFetch.forEach((gisLayer) => {
+      const url = getUrl(extentWGS84, gisLayer);
+      GM_xmlhttpRequest({
+        url,
+        context: lastToken,
+        method: 'GET',
+        onload(res2) {
+          if (res2.status < 400) {
+            // Handle successful response
+            try {
+              const parsedData = $.parseJSON(res2.responseText);
+              processFeatures(parsedData, res2.context, gisLayer);
+            } catch (parseError) {
+              logError(`Parsing error for layer "${gisLayer.id}": ${parseError.message}`);
+              $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
             }
 
-            layersToFetch = layersToFetch.filter(
-              (layer) =>
-                !layer.hasOwnProperty('counties') ||
-                layer.counties.some((countyName) => _countiesInExtent.some((county) => county.name === countyName.toLowerCase() && layer.state === county.stateInfo[1]))
-            );
-            filterLayerCheckboxes();
-            logDebug(`Fetching ${layersToFetch.length} layers...`);
-            logDebug(layersToFetch);
-            let layersProcessedCount = 0; // Track processed layers
-
-            layersToFetch.forEach((gisLayer) => {
-              const url = getUrl(extentWGS84, gisLayer);
-              if (gisLayer.isFeatureSet){ // trying to retrieve cached data from sessionStorage
-                  let sessionValue = sessionStorage.getItem(gisLayer.id);
-                  if (sessionValue){
-                      logDebug(`Processing features of ${gisLayer.id} from storage (RawData)...`);
-                      processFeatures($.parseJSON(sessionValue), {}, gisLayer);
-                      return;
-                  }
-              }
-              GM_xmlhttpRequest({
-                url,
-                context: lastToken,
-                method: 'GET',
-                onload(res2) {
-                  if (res2.status < 400) {
-                    // Handle successful response
-                    try {
-                      const parsedData = $.parseJSON(res2.responseText);
-                      processFeatures(parsedData, res2.context, gisLayer);
-                    } catch (parseError) {
-                      logError(`Parsing error for layer "${gisLayer.id}": ${parseError.message}`);
-                      $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
-                    }
-
-                    // Update popup after processing all layers
-                    layersProcessedCount += 1;
-                    if (layersProcessedCount === layersToFetch.length && isPopupVisible) {
-                      updatePopup(layerLabels);
-                    }
-                  } else {
-                    // Handle HTTP error response
-                    logError(`HTTP error for layer "${gisLayer.id}": ${res2.status} ${res2.statusText}`);
-                    $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
-                  }
-                },
-                onerror(res3) {
-                  // Handle request error, particularly timeouts or network issues
-                  logError(`Could not fetch layer "${gisLayer.id}". Error: ${res3.statusText} (status code: ${res3.status})`);
-                  $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
-                },
-              });
-            });
+            // Update popup after processing all layers
+            layersProcessedCount += 1;
+            if (layersProcessedCount === layersToFetch.length && isPopupVisible) {
+              updatePopup(layerLabels);
+            }
+          } else {
+            // Handle HTTP error response
+            logError(`HTTP error for layer "${gisLayer.id}": ${res2.status} ${res2.statusText}`);
+            $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
           }
-        } else {
-          logDebug(`HTTP request error: ${JSON.stringify(res)}`);
-          logError(`Could not fetch counties from PY Census site.  Request returned ${res.status}`);
-        }
-      },
-      onerror(res) {
-        logDebug(`xmlhttpRequest error:${JSON.stringify(res)}`);
-        logError('Could not fetch counties from PY Census site.  An error was thrown.');
-      },
+        },
+        onerror(res3) {
+          // Handle request error, particularly timeouts or network issues
+          logError(`Could not fetch layer "${gisLayer.id}". Error: ${res3.statusText} (status code: ${res3.status})`);
+          $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
+        },
+      });
     });
   }
 
@@ -1842,15 +2900,15 @@
     }
   }
 
-  function setEnabled(value) {
+  async function setEnabled(value) {
     settings.enabled = value;
     saveSettingsToStorage();
     sdk.Map.setLayerVisibility({ layerName: DEFAULT_LAYER_NAME, visibility: value });
     sdk.Map.setLayerVisibility({ layerName: ROAD_LAYER_NAME, visibility: value });
     const color = value ? '#00bd00' : '#ccc';
     $('span#gis-layers-power-btn').css({ color });
-    if (value) fetchFeatures();
-    sdk.LayerSwitcher.setLayerCheckboxChecked({ name: 'PY GIS Layers', isChecked: value });
+    if (value) await fetchFeatures();
+    sdk.LayerSwitcher.setLayerCheckboxChecked({ name: 'GIS Layers', isChecked: value });
 
     // Show/hide the popup based on the enabled state
     const popup = document.getElementById('layerLabelPopup');
@@ -1860,7 +2918,7 @@
     }
   }
 
-  function onGisLayerToggleChanged() {
+  async function onGisLayerToggleChanged() {
     const checked = $(this).is(':checked');
     const layerId = $(this).data('layer-id');
     const idx = settings.visibleLayers.indexOf(layerId);
@@ -1880,26 +2938,32 @@
     } else if (idx > -1) settings.visibleLayers.splice(idx, 1);
     if (!ignoreFetch) {
       saveSettingsToStorage();
-      fetchFeatures();
+      await fetchFeatures();
     }
   }
 
-  function onOnlyShowApplicableLayersChanged() {
+  async function onOnlyShowApplicableLayersChanged() {
     settings.onlyShowApplicableLayers = $(this).is(':checked');
     saveSettingsToStorage();
-    fetchFeatures();
+    filterLayerCheckboxes();
   }
 
-  function onStateCheckChanged(evt) {
-    const state = evt.data;
-    const idx = settings.selectedStates.indexOf(state);
+  async function onOnlyShowApplicableLayersZoomChanged() {
+    settings.onlyShowApplicableLayersZoom = $(this).is(':checked');
+    saveSettingsToStorage();
+    filterLayerCheckboxes();
+  }
+
+  async function onSub1CheckChanged(evt) {
+    const subL1 = evt.data;
+    const idx = settings.selectedSubL1.indexOf(subL1);
     if (evt.target.checked) {
-      if (idx === -1) settings.selectedStates.push(state);
-    } else if (idx > -1) settings.selectedStates.splice(idx, 1);
+      if (idx === -1) settings.selectedSubL1.push(subL1);
+    } else if (idx > -1) settings.selectedSubL1.splice(idx, 1);
     if (!ignoreFetch) {
       saveSettingsToStorage();
       initLayersTab();
-      fetchFeatures();
+      await fetchFeatures();
     }
   }
 
@@ -1913,16 +2977,19 @@
     });
   }
 
-  function onFillParcelsCheckedChanged(evt) {
+  async function onFillParcelsCheckedChanged(evt) {
     const { checked } = evt.target;
     setFillParcels(checked);
     settings.fillParcels = checked;
     saveSettingsToStorage();
-    fetchFeatures();
+    await fetchFeatures();
   }
 
-  function onMapMove() {
-    if (settings.enabled) fetchFeatures();
+  async function onMapMove() {
+    if (settings.enabled) {
+      await loadVisibleCountryData();
+      await fetchFeatures();
+    }
   }
 
   function onRefreshLayersClick() {
@@ -1950,13 +3017,13 @@
     if (sectionKey) saveSettingsToStorage();
   }
 
-  function doToggleABunch(evt, checkState) {
+  async function doToggleABunch(evt, checkState) {
     ignoreFetch = true;
     $(evt.target).closest('fieldset').find('input').prop('checked', !checkState).trigger('click');
     ignoreFetch = false;
     saveSettingsToStorage();
     if (evt.data) initLayersTab();
-    fetchFeatures();
+    await fetchFeatures();
   }
 
   function onSelectAllClick(evt) {
@@ -1967,10 +3034,10 @@
     doToggleABunch(evt, false);
   }
 
-  function onGisAddrDisplayChange(evt) {
+  async function onGisAddrDisplayChange(evt) {
     settings.addrLabelDisplay = evt.target.value;
     saveSettingsToStorage();
-    fetchFeatures();
+    await fetchFeatures();
   }
 
   function onAddressDisplayShortcutKey() {
@@ -2053,52 +3120,60 @@
 
   function initLayersTab() {
     const user = userInfo.userName.toLowerCase();
-    const states = _.uniq(_gisLayers.map((l) => l.state)).filter((st) => settings.selectedStates.includes(st));
+    const subL1 = _.uniq(_gisLayers.map((l) => l.countrySubL1)).filter((sub) => settings.selectedSubL1.includes(sub));
 
-    $('#panel-gis-state-layers')
+    $('#panel-gis-subL1-layers')
       .empty()
       .append(
         $('<div>', { class: 'controls-container' })
           .css({ 'padding-top': '0px' })
           .append(
             $('<input>', { type: 'checkbox', id: 'only-show-applicable-gis-layers' }).change(onOnlyShowApplicableLayersChanged).prop('checked', settings.onlyShowApplicableLayers),
-            $('<label>', { for: 'only-show-applicable-gis-layers' }).css({ 'white-space': 'pre-line' }).text('Only show applicable layers')
+            $('<label>', { for: 'only-show-applicable-gis-layers' }).css({ 'white-space': 'pre-line' }).text('Only show applicable layers for Region')
           ),
-        $('.gis-layers-state-checkbox:checked').length === 0
+        $('<div>', { class: 'controls-container' })
+          .css({ 'padding-top': '0px' })
+          .append(
+            $('<input>', { type: 'checkbox', id: 'only-show-applicable-gis-layers-for-zoom-level' })
+              .change(onOnlyShowApplicableLayersZoomChanged)
+              .prop('checked', settings.onlyShowApplicableLayersZoom),
+            $('<label>', { for: 'only-show-applicable-gis-layers-for-zoom-level' }).css({ 'white-space': 'pre-line' }).text('Include Zoom Level in filter')
+          ),
+        $('.gis-layers-subL1-checkbox:checked').length === 0
           ? $('<div>').text('Turn on layer categories in the Settings tab.')
-          : states.map((st) =>
+          : subL1.map((sub) =>
               $('<fieldset>', {
-                id: `gis-layers-for-${st}`,
+                id: `gis-layers-for-${sub}`,
                 style: 'border:1px solid silver;padding:4px;border-radius:4px;-webkit-padding-before: 0;',
               }).append(
                 $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
                   .click(onChevronClick)
                   .append(
                     $('<i>', {
-                      class: settings.collapsedSections[st] ? 'fa fa-fw fa-chevron-right' : 'fa fa-fw fa-chevron-down',
+                      class: settings.collapsedSections[sub] ? 'fa fa-fw fa-chevron-right' : 'fa fa-fw fa-chevron-down',
                       style: 'cursor: pointer;font-size: 12px;margin-right: 4px',
                     }),
                     $('<span>', {
                       style: 'font-size:14px;font-weight:600;text-transform: uppercase; cursor: pointer',
-                    }).text(STATES.toFullName(st))
+                    }).text(NameMapper.toFullName(sub))
                   ),
                 $('<div>', {
-                  id: `${st}_body`,
-                  style: settings.collapsedSections[st] ? 'display: none;' : 'display: block;',
+                  id: `${sub}_body`,
+                  style: settings.collapsedSections[sub] ? 'display: none;' : 'display: block;',
                 }).append(
                   $('<div>')
                     .css({ 'font-size': '11px' })
                     .append($('<span>').append('Select ', $('<a>', { href: '#' }).text('All').click(onSelectAllClick), ' / ', $('<a>', { href: '#' }).text('None').click(onSelectNoneClick))),
                   $('<div>', { class: 'controls-container', style: 'padding-top:0px;' }).append(
                     _gisLayers
-                      .filter((l) => l.state === st && (!PRIVATE_LAYERS.hasOwnProperty(l.id) || PRIVATE_LAYERS[l.id].includes(user)))
+                      .filter((l) => l.countrySubL1 === sub && (!PRIVATE_LAYERS.hasOwnProperty(l.id) || PRIVATE_LAYERS[l.id].includes(user)))
                       .map((gisLayer) => {
                         const id = `gis-layer-${gisLayer.id}`;
                         return $('<div>', { class: 'controls-container', id: `${id}-container` })
                           .css({ 'padding-top': '0px', display: 'block' })
                           .append(
                             $('<input>', { type: 'checkbox', id }).data('layer-id', gisLayer.id).change(onGisLayerToggleChanged).prop('checked', settings.visibleLayers.includes(gisLayer.id)),
-                            $('<label>', { for: id, class: 'gis-state-layer-label' })
+                            $('<label>', { for: id, class: 'gis-subL1-layer-label' })
                               .css({ 'white-space': 'pre-line' })
                               .text(`${gisLayer.name}${gisLayer.restrictTo ? ' *' : ''}`)
                               .attr('title', gisLayer.restrictTo ? `Restricted to: ${gisLayer.restrictTo}` : '')
@@ -2119,7 +3194,9 @@
   }
 
   function initSettingsTab() {
-    const states = _.uniq(_gisLayers.map((l) => l.state));
+    // Group layers by country
+    const layersByCountry = _.groupBy(_gisLayers, 'country');
+
     const createRadioBtn = (name, value, text, checked) => {
       const id = `${name}-${value}`;
       return [
@@ -2171,40 +3248,44 @@
                 createRadioBtn('popupVisibility', 'hide', 'Hide', !isPopupVisible)
               )
           )
-        ),
-        $('<fieldset>', {
-          style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before: 0;',
-        }).append(
-          $('<legend>', {
-            style: 'margin-bottom:0px;border-bottom-style:none;width:auto;',
-          }).append(
-            $('<span>', {
-              style: 'font-size:14px;font-weight:600;text-transform: uppercase;',
-            }).text('Layer Categories')
-          ),
-          $('<div>', { id: 'states_body' }).append(
-            $('<div>')
-              .css({ 'font-size': '11px' })
-              .append($('<span>').append('Select ', $('<a>', { href: '#' }).text('All').click(true, onSelectAllClick), ' / ', $('<a>', { href: '#' }).text('None').click(true, onSelectNoneClick))),
-            $('<div>', { class: 'controls-container', style: 'padding-top:0px;' }).append(
-              states.map((st) => {
-                const fullName = STATES.toFullName(st);
-                const id = `gis-layer-enable-state-${st}`;
+        )
+      );
+
+    // Create groups by country
+    Object.keys(layersByCountry)
+      .sort()
+      .forEach((country) => {
+        const subRegions = _.uniq(layersByCountry[country].map((l) => l.countrySubL1));
+
+        $('#panel-gis-layers-settings').append(
+          $('<fieldset>', { style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before:0;' }).append(
+            $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
+              .click(onChevronClick)
+              .append(
+                $('<i>', { class: 'fa fa-fw fa-chevron-down', style: 'cursor: pointer;font-size: 12px;margin-right: 4px' }),
+                $('<span>', { style: 'font-size:14px;font-weight:600;text-transform:uppercase;' }).text(NameMapper.toFullName(country))
+              ),
+            $('<div>', { id: `country_${country}_body` }).append(
+              subRegions.map((countrySubL1) => {
+                const fullName = NameMapper.toFullName(countrySubL1);
+                const id = `gis-layer-enable-subL1-${countrySubL1}`;
+
                 return $('<div>', { class: 'controls-container' })
                   .css({ 'padding-top': '0px', display: 'block' })
                   .append(
-                    $('<input>', { type: 'checkbox', id, class: 'gis-layers-state-checkbox' }).change(st, onStateCheckChanged).prop('checked', settings.selectedStates.includes(st)),
+                    $('<input>', { type: 'checkbox', id, class: 'gis-layers-subL1-checkbox' }).change(countrySubL1, onSub1CheckChanged).prop('checked', settings.selectedSubL1.includes(countrySubL1)),
                     $('<label>', { for: id }).css({ 'white-space': 'pre-line', color: '#777' }).text(fullName)
                   );
               })
             )
           )
-        )
-      );
+        );
+      });
+
     $('#panel-gis-layers-settings').append(
-      $('<fieldset>', { style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before: 0;' }).append(
+      $('<fieldset>', { style: 'border:1px solid silver;padding:8px;border-radius:4px;-webkit-padding-before:0;' }).append(
         $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' }).append(
-          $('<span>', { style: 'font-size:14px;font-weight:600;text-transform: uppercase;' }).text('Appearance')
+          $('<span>', { style: 'font-size:14px;font-weight:600;text-transform:uppercase;' }).text('Appearance')
         ),
         $('<div>', { class: 'controls-container' })
           .css({ 'padding-top': '2px' })
@@ -2225,9 +3306,9 @@
     if (firstCall) {
       const content = $('<div>')
         .append(
-          $('<span>', { style: 'font-size:14px;font-weight:600' }).text('PY GIS Layers'),
+          $('<span>', { style: 'font-size:14px;font-weight:600' }).text('GIS Layers'),
           $('<span>', { style: 'font-size:11px;margin-left:10px;color:#aaa;' }).text(GM_info.script.version),
-          // <a href="https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
+          // <a href="https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
           $('<a>', {
             href: REQUEST_FORM_URL.replace('{username}', userInfo.userName),
             target: '_blank',
@@ -2242,7 +3323,7 @@
             title: 'Pull new layer info from master sheet and refresh all layers.',
           }),
           '<ul class="nav nav-tabs">' +
-            '<li class="active"><a data-toggle="tab" href="#panel-gis-state-layers" aria-expanded="true">' +
+            '<li class="active"><a data-toggle="tab" href="#panel-gis-subL1-layers" aria-expanded="true">' +
             'Layers' +
             '</a></li>' +
             '<li><a data-toggle="tab" href="#panel-gis-layers-settings" aria-expanded="true">' +
@@ -2250,7 +3331,7 @@
             '</a></li> ' +
             '</ul>',
           $('<div>', { class: 'tab-content', style: 'padding:8px;padding-top:2px' }).append(
-            $('<div>', { class: 'tab-pane active', id: 'panel-gis-state-layers', style: 'padding: 4px 0px 0px 0px; width: auto' }),
+            $('<div>', { class: 'tab-pane active', id: 'panel-gis-subL1-layers', style: 'padding: 4px 0px 0px 0px; width: auto' }),
             $('<div>', { class: 'tab-pane', id: 'panel-gis-layers-settings', style: 'padding: 4px 0px 0px 0px; width: auto' })
           )
         )
@@ -2263,9 +3344,9 @@
             class: 'fa fa-power-off',
             id: 'gis-layers-power-btn',
             style: `margin-right: 5px;cursor: pointer;color: ${powerButtonColor};font-size: 13px;`,
-            title: 'Toggle PY GIS Layers',
+            title: 'Toggle GIS Layers',
           }),
-          $('<span>', { title: 'PY GIS Layers' }).text('PY GIS-L')
+          $('<span>', { title: 'GIS Layers' }).text('GIS-L')
         )
         .html();
 
@@ -2293,8 +3374,8 @@
     if (firstCall) {
       initTab(true);
 
-      sdk.LayerSwitcher.addLayerCheckbox({ name: 'PY GIS Layers' });
-      sdk.LayerSwitcher.setLayerCheckboxChecked({ name: 'PY GIS Layers', isChecked: settings.enabled });
+      sdk.LayerSwitcher.addLayerCheckbox({ name: 'GIS Layers' });
+      sdk.LayerSwitcher.setLayerCheckboxChecked({ name: 'GIS Layers', isChecked: settings.enabled });
       sdk.Events.on({ eventName: 'wme-layer-checkbox-toggled', eventHandler: onLayerCheckboxChanged });
       sdk.Events.on({ eventName: 'wme-map-move-end', eventHandler: onMapMove });
       showScriptInfoAlert();
@@ -2303,19 +3384,148 @@
     }
   }
 
-  async function loadSpreadsheetAsync() {
+  /**
+   * Asynchronously loads GIS data for visible countries and subdivisions within the current map viewport.
+   *
+   * This function fetches data associated with countries and their subdivisions that are visible at the current zoom
+   * level. It avoids redundant data loads by tracking which countries and subdivisions have already been processed,
+   * thereby optimizing resource usage and enhancing loading efficiency.
+   *
+   * Process Overview:
+   * 1. Checks the current zoom level and returns early if below the threshold, preventing data loading.
+   * 2. Calls `whatsInView` to populate `_whatsInView` with currently visible country and subdivision data.
+   * 3. Iterates over `_whatsInView` to extract unique country codes (`ISO_ALPHA3`) and subdivision codes (`subL1_id`).
+   * 4. For each country code:
+   *    - If it's not already loaded, initializes loading for all visible subdivisions.
+   *    - For countries already loaded, filters subdivisions that haven't been loaded yet.
+   *    - Calls `loadSpreadsheetAsync` to fetch and load the data and then updates the GUI.
+   * 5. Tracks loaded subdivisions to prevent redundancy and logs the loading activity for debugging.
+   *
+   * Features:
+   * - Efficiently manages GIS data loading based on visibility and ensures GUI updating post-data fetch.
+   * - Uses sets to maintain unique country and region codes, enhancing data consistency.
+   *
+   * Parameters:
+   * - No explicit parameters, utilizes global variables and state tracking.
+   *
+   * @returns {Promise<void>} - No explicit return; relies on side effects to update global state and UI.
+   */
+  async function loadVisibleCountryData() {
+    try {
+      const currentZoomLevel = sdk.Map.getZoomLevel();
+      if (currentZoomLevel < 12) {
+        return;
+      }
+
+      await whatsInView(); // This function populates _whatsInView with the current visible countries and subs
+
+      const countryCodes = new Set();
+      const regionCodes = new Set();
+
+      for (const country in _whatsInView) {
+        if (_whatsInView.hasOwnProperty(country)) {
+          const countryInfo = _whatsInView[country];
+          if (countryInfo.ISO_ALPHA3) {
+            countryCodes.add(countryInfo.ISO_ALPHA3);
+          }
+          if (countryInfo.subL1) {
+            for (const subdivision in countryInfo.subL1) {
+              if (countryInfo.subL1.hasOwnProperty(subdivision)) {
+                const subdivisionInfo = countryInfo.subL1[subdivision];
+                if (subdivisionInfo.subL1_id) {
+                  regionCodes.add(subdivisionInfo.subL1_id);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      for (const isoCode of countryCodes) {
+        let newRegionCodesToLoad = new Set();
+
+        if (!alreadyLoadedCountries.has(isoCode)) {
+          logDebug(`Loading Layers for Country ${isoCode} with Subdivision(s): ${Array.from(regionCodes).join(', ')}`);
+          newRegionCodesToLoad = new Set(regionCodes);
+          alreadyLoadedCountries.add(isoCode);
+        } else {
+          regionCodes.forEach((regionCode) => {
+            if (!alreadyLoadedSubL1.has(regionCode)) {
+              logDebug(`Loading New Subdivision(s) ${regionCode} Layers for Country ${isoCode}`);
+              newRegionCodesToLoad.add(regionCode);
+            }
+          });
+        }
+
+        if (newRegionCodesToLoad.size > 0) {
+          await loadSpreadsheetAsync(isoCode, newRegionCodesToLoad);
+          initGui(false); // Update GUI after loading data
+        }
+
+        newRegionCodesToLoad.forEach((regionCode) => {
+          alreadyLoadedSubL1.add(regionCode);
+        });
+      }
+    } catch (error) {
+      logError(`Error in loadVisibleCountryData: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Asynchronously loads GIS layer definitions from a spreadsheet based on country ISO codes and visible subdivisions.
+   *
+   * This function retrieves GIS layer configuration data from a specified Google Sheets spreadsheet using the country
+   * ISO code and checks against region codes for relevant subdivisions. It validates the spreadsheet structure, adjusts
+   * layer properties, and filters layers based on access restrictions and visibility requirements.
+   *
+   * Process Overview:
+   * 1. Constructs a URL using the country ISO code to access the appropriate tab in the spreadsheet.
+   * 2. Fetches data from the spreadsheet using the constructed URL, handling any errors from the request.
+   * 3. Validates the spreadsheet's column data against required field names ensuring script compatibility.
+   * 4. Iterates over each layer definition row to:
+   *    - Parse, trim, and convert field values appropriately (e.g., splitting strings and JSON parsing).
+   *    - Compile label processing functions, handle style specifications, and validate subdivision visibility.
+   *    - Evaluate access restrictions based on user rank and specific user attributes.
+   *    - Construct a country-subdivision identifier and manage layer activation based on its defined settings.
+   *    - Ensure layers are added to global layer tracking if they meet visibility and access criteria.
+   *
+   * Parameters:
+   * - `isoCode`: ISO country code determining which spreadsheet tab to access for GIS layers.
+   * - `regionCodes`: Set of region codes indicating visible subdivisions for filtering layers.
+   *
+   * Features:
+   * - Utilizes Google Sheets API for configuration data retrieval.
+   * - Integrates comprehensive error handling and debugging output.
+   *
+   * Error Handling:
+   * - Throws errors for failed spreadsheet calls and logs issues with data parsing or processing tasks.
+   *
+   * @param {string} isoCode - Country ISO code for selecting the spreadsheet tab and data.
+   * @param {Set<string>} regionCodes - Set of subdivision codes used to filter visible GIS layers.
+   * @returns {Promise<Object>} - Object containing error information, if any occurs during processing.
+   */
+  async function loadSpreadsheetAsync(isoCode, regionCodes) {
+    const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/';
+    const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
+    const DEC = (s) => atob(atob(s));
+
     let data;
     try {
-      data = await $.getJSON(`${LAYER_DEF_SPREADSHEET_URL}?${DEC(API_KEY)}`);
+      const tabName = isoCode.toUpperCase();
+      const url = `${LAYER_DEF_SPREADSHEET_URL}${tabName}?${DEC(API_KEY)}`;
+      data = await $.getJSON(url);
     } catch (err) {
       throw new Error(`Spreadsheet call failed. (${err.status}: ${err.statusText})`);
     }
-    const [[minVersion], fieldNames, ...layerDefRows] = data.values;
+
+    const [, [minVersion], fieldNames, ...layerDefRows] = data.values;
     const REQUIRED_FIELD_NAMES = [
-      'state',
+      'country',
+      'subL1',
       'name',
       'id',
-      'counties',
+      'subL2',
       'url',
       'where',
       'labelFields',
@@ -2326,33 +3536,33 @@
       'enabled',
       'restrictTo',
       'oneTimeAlert',
-      'areaToPoint',
-      'isFeatureSet',
-      'serverType',
     ];
+
     const result = { error: null };
     const checkFieldNames = (fldName) => fieldNames.includes(fldName);
 
     if (scriptVersion < minVersion) {
       result.error = `Script must be updated to at least version ${minVersion} before layer definitions can be loaded.`;
     } else if (fieldNames.length < REQUIRED_FIELD_NAMES.length) {
-      result.error = `Expected ${REQUIRED_FIELD_NAMES.length} columns in layer definition data.  Spreadsheet returned ${fieldNames.length}.`;
-    } else if (!REQUIRED_FIELD_NAMES.every((fldName) => checkFieldNames(fldName))) {
-      result.error =
-        'Script expected to see the following column names in the layer ' +
-        `definition spreadsheet:\n${REQUIRED_FIELD_NAMES.join(', ')}\n` +
-        `But the spreadsheet returned these:\n${fieldNames.join(', ')}`;
+      result.error = `Expected ${REQUIRED_FIELD_NAMES.length} columns in layer definition data. Spreadsheet returned ${fieldNames.length}.`;
+    } else if (!REQUIRED_FIELD_NAMES.every(checkFieldNames)) {
+      result.error = 'Script expected specific column names that are missing.';
     }
+
     if (!result.error) {
       layerDefRows
         .filter((row) => row.length)
         .forEach((layerDefRow) => {
           const layerDef = { enabled: '0' };
+          let validSubL1 = false;
+          let countryId = '';
+          let subL1Upper = '';
+
           fieldNames.forEach((fldName, fldIdx) => {
             let value = layerDefRow[fldIdx];
             if (value !== undefined && value.trim().length > 0) {
               value = value.trim();
-              if (fldName === 'counties' || fldName === 'labelFields') {
+              if (fldName === 'subL2' || fldName === 'labelFields') {
                 value = value.split(',').map((item) => item.trim());
               } else if (fldName === 'processLabel') {
                 try {
@@ -2365,15 +3575,18 @@
               } else if (fldName === 'style') {
                 layerDef.isRoadLayer = value === 'roads';
                 if (!layerDef.isRoadLayer && !LAYER_STYLES.hasOwnProperty(value)) {
-                  // If style is not defined, try to read in as JSON (custom style)
                   try {
                     value = JSON.parse(value);
                   } catch (ex) {
                     logError(`Invalid style definition for layer "${layerDef.id}".`);
                   }
                 }
-              } else if (fldName === 'state') {
-                value = value ? value.toUpperCase() : value;
+              } else if (fldName === 'country') {
+                countryId = value.toUpperCase();
+              } else if (fldName === 'subL1') {
+                subL1Upper = value.toUpperCase();
+                layerDef[fldName] = subL1Upper;
+                validSubL1 = regionCodes.has(subL1Upper) || subL1Upper === isoCode.toUpperCase();
               } else if (fldName === 'restrictTo') {
                 try {
                   const values = value.split(',').map((v) => v.trim().toLowerCase());
@@ -2399,9 +3612,17 @@
               layerDef[fldName] = [''];
             }
           });
+
+          if (countryId && subL1Upper) {
+            layerDef['countrySubL1'] = `${countryId}-${subL1Upper}`;
+          }
+
           const enabled = layerDef.enabled && !['0', 'false', 'no', 'n'].includes(layerDef.enabled.toString().trim().toLowerCase());
-          if (!layerDef.notAllowed && enabled) {
-            _gisLayers.push(layerDef);
+          if (validSubL1 && !layerDef.notAllowed && enabled) {
+            const layerExists = _gisLayers.some((existingLayer) => existingLayer.id === layerDef.id);
+            if (!layerExists) {
+              _gisLayers.push(layerDef);
+            }
           }
         });
     }
@@ -2423,9 +3644,9 @@
   }
 
   async function init(firstCall = true) {
-    _gisLayers = [];
     if (firstCall) {
       userInfo = sdk.State.getUserInfo();
+      labelProcessingGlobalVariables.W = W;
       labelProcessingGlobalVariables.sdk = sdk;
       initRoadStyle();
       loadSettingsFromStorage();
@@ -2434,30 +3655,14 @@
       installPathFollowingLabels();
       window.addEventListener('beforeunload', saveSettingsToStorage, false);
       _layerSettingsDialog = new LayerSettingsDialog();
+      await buildCountrySubdivisionMapping();
     }
     const t0 = performance.now();
     try {
-      const result = await loadSpreadsheetAsync();
-      if (result.error) {
-        logError(result.error);
-        return;
-      }
-      _layerRefinements.forEach((layerRefinement) => {
-        const layerDef = _gisLayers.find((layerDef2) => layerDef2.id === layerRefinement.id);
-        if (layerDef) {
-          Object.keys(layerRefinement).forEach((fldName) => {
-            const value = layerRefinement[fldName];
-            if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
-              logDebug(`The "${fldName}" property of layer "${layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.` + ' The spreadsheet value takes precedence.');
-            } else if (value) layerDef[fldName] = value;
-          });
-        } else {
-          logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined` + ' in the spreadsheet.  It can probably be removed from the script.');
-        }
-      });
+      await loadVisibleCountryData();
       logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
       initGui(firstCall);
-      fetchFeatures();
+      await fetchFeatures();
       $('#gis-layers-refresh').removeClass('fa-spin').css({ cursor: 'pointer' });
       logDebug('Initialized.');
     } catch (err) {
