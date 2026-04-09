@@ -231,12 +231,12 @@
 
     let _gisLayers = [];
 
-    // const _layerRefinements = [
-    //     {
-    //         id: 'us-post-offices',
-    //         labelHeaderFields: ['LOCALE_NAME']
-    //     }
-    // ];
+    const _layerRefinements = [
+        {
+            id: 'us-post-offices',
+            labelHeaderFields: ['LOCALE_NAME']
+        }
+    ];
 
     const STATES = {
         _states: [
@@ -491,6 +491,15 @@
         _settings.lastVersion = SCRIPT_VERSION;
         localStorage.setItem(SETTINGS_STORE_NAME, JSON.stringify(_settings));
         logDebug('Settings saved');
+    }
+
+    function getOLMapExtent() {
+        let extent = W.map.getExtent();
+        if (Array.isArray(extent)) {
+            extent = new OpenLayers.Bounds(extent);
+            extent.transform('EPSG:4326', 'EPSG:3857');
+        }
+        return extent;
     }
 
     function getUrl(extent, gisLayer) {
@@ -783,7 +792,7 @@
                                     // Use Turf library to clip the geometry to the screen bounds.
                                     // This allows labels to stay in view on very long roads.
                                     const mls = turf.multiLineString(item.geometry.paths);
-                                    const e = W.map.getExtent();
+                                    const e = getOLMapExtent();
                                     const bbox = [e.left, e.bottom, e.right, e.top];
                                     const clipped = turf.bboxClip(mls, bbox);
                                     if (clipped.geometry.type === 'LineString') {
@@ -1022,7 +1031,7 @@
         let _layersCleared = false;
 
         // if (layersToFetch.length) {
-        const extent = W.map.getExtent();
+        const extent = getOLMapExtent();
         GM_xmlhttpRequest({
             url: getCountiesUrl(extent),
             method: 'GET',
@@ -1467,7 +1476,7 @@
                 $('<span>', { style: 'font-size:11px;margin-left:10px;color:#aaa;' }).text(GM_info.script.version),
                 // <a href="https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226=test" target="_blank" style="color: #6290b7;font-size: 12px;margin-left: 8px;" title="Report broken layers, bugs, request new layers, script features">Report an issue</a>
                 $('<a>', {
-                    href: REQUEST_FORM_URL.replace('{username}', user.userName),
+                    href: REQUEST_FORM_URL.replace('{username}', user.attributes.userName),
                     target: '_blank',
                     style: 'color: #6290b7;font-size: 12px;margin-left: 8px;',
                     title: 'Report broken layers, bugs, request new layers, script features'
