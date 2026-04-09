@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2025.04.23.000-py028
+// @version      2025.05.25.000-py028
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
@@ -62,13 +62,13 @@
 /* global turf */
 /* global ESTreeProcessor */
 /* global bootstrap */
-/* global W, OpenLayers */
+/* global OpenLayers */
 
 (async function main() {
     'use strict';
 
     const SHOW_UPDATE_MESSAGE = true;
-    const SCRIPT_VERSION_CHANGES = ['Added a setting to display a popup with layer labels which can be used to copy label text (thanks to JS55CT for creating this!).'];
+    const SCRIPT_VERSION_CHANGES = ['Major update: migrated to the WME SDK. If you find issues, please report them in Discord or Discuss.'];
 
     // **************************************************************************************************************
     // IMPORTANT: Update this when releasing a new version of script that includes changes to the spreadsheet format
@@ -97,10 +97,13 @@
     //         sheetLayerRange: 'layerDefs'
     //     }
     // };
+    const DEFAULT_LAYER_NAME = 'GIS Layers - Default';
+    const ROAD_LAYER_NAME = 'GIS Layers - Roads';
     const DEFAULT_STYLE = {
         fillColor: '#000',
         pointRadius: 4,
-        label: '${label}',
+        label: '${getLabel}',
+        fillOpacity: '0.95',
         strokeColor: '#ffa500',
         strokeOpacity: '0.95',
         strokeWidth: 1.5,
@@ -183,11 +186,10 @@
     };
     let ROAD_STYLE;
     function initRoadStyle() {
-        // SDK: Need styles that allow parameters
-        ROAD_STYLE = new OpenLayers.Style({
+        ROAD_STYLE = {
             pointRadius: 12,
             fillColor: '#369',
-            pathLabel: '${label}',
+            pathLabel: '${getLabel}',
             label: '',
             fontColor: '#faf',
             labelSelect: true,
@@ -203,14 +205,7 @@
             strokeOpacity: 0.4,
             fontWeight: 'bold',
             fontSize: 11
-        }, {
-            context: {
-                getOffset() { return -(sdk.Map.getZoomLevel() + 5); },
-                getSmooth() { return ''; },
-                getReadable() { return '1'; },
-                getAlign() { return 'cb'; }
-            }
-        });
+        };
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -255,11 +250,21 @@
             ['Central', 'CEN', 11], ['Neembucu', 'NEE', 12], ['Amambay', 'AMA', 13], ['Canindeyu', 'CAN', 14],
             ['Presidente Hayes', 'PHA', 15], ['Boqueron', 'BOQ', 16], ['Alto Paraguay', 'AAY', 17],
         ],
-        toAbbr(fullName) { return this._states.find(a => a[0] === fullName)[1]; },
-        toFullName(abbr) { return this._states.find(a => a[1] === abbr)[0]; },
-        toFullNameArray() { return this._states.map(a => a[0]); },
-        toAbbrArray() { return this._states.map(a => a[1]); },
-        fromId(id) { return this._states.find(a => a[2] === id); }
+        toAbbr(fullName) {
+            return this._states.find(a => a[0] === fullName)?.[1]; // Returns undefined if not found
+        },
+        toFullName(abbr) {
+            return this._states.find(a => a[1] === abbr)?.[0]; // Returns undefined if not found
+        },
+        toFullNameArray() {
+            return this._states.map(a => a[0]);
+        },
+        toAbbrArray() {
+            return this._states.map(a => a[1]);
+        },
+        fromId(id) {
+            return this._states.find(a => a[2] === id); // Returns undefined if not found
+        }
     };
     const DEFAULT_VISIBLE_AT_ZOOM = 18;
     const SETTINGS_STORE_NAME = 'wme_gis_layers';
@@ -270,8 +275,6 @@
     const scriptVersion = GM_info.script.version;
     const downloadUrl = 'https://greasyfork.org/scripts/388277-wme-paraguay-gis-layers/code/WME%20Paraguay%20GIS%20Layers.user.js';
     const sdk = await bootstrap({ scriptUpdateMonitor: { downloadUrl } });
-    let mapLayer = null;
-    let roadLayer = null;
     let settings = {};
     let ignoreFetch = false;
     let lastToken = {};
@@ -473,9 +476,42 @@
         }
 
         #shiftLayerFeatures(x, y) {
-            const layer = this.gisLayer.isRoadLayer ? roadLayer : mapLayer;
-            layer.getFeaturesByAttribute('layerID', this.gisLayer.id).forEach(f => f.geometry.move(x, y));
-            layer.redraw();
+            const { isRoadLayer } = this.gisLayer;
+            let featureCollection = isRoadLayer ? roadFeatures : defaultFeatures;
+            const { distance, bearing } = LayerSettingsDialog.#calculateDistanceAndBearing(x, y);
+            featureCollection = featureCollection
+                .filter(f => f.properties.layerID === this.gisLayer.id)
+                .map(f => turf.transformTranslate(f, distance, bearing, { units: 'meters' }));
+            if (isRoadLayer) {
+                roadFeatures = featureCollection;
+            } else {
+                defaultFeatures = featureCollection;
+            }
+            const layerName = isRoadLayer ? ROAD_LAYER_NAME : DEFAULT_LAYER_NAME;
+            const featureIds = featureCollection.map(f => f.id);
+            sdk.Map.removeFeaturesFromLayer({ layerName, featureIds });
+            sdk.Map.addFeaturesToLayer({ layerName, features: featureCollection });
+        }
+
+        /**
+         * Calculates the total distance and bearing from X and Y meter offsets.
+         * @param {number} dx_meters - X offset in meters (east/west).
+         * @param {number} dy_meters - Y offset in meters (north/south).
+         * @returns {{distance: number, bearing: number}}
+         */
+        static #calculateDistanceAndBearing(dx_meters, dy_meters) {
+            const distance = Math.sqrt(dx_meters ** 2 + dy_meters ** 2);
+
+            // Calculate bearing in radians
+            // Math.atan2(y, x) returns angle in radians between -PI and PI
+            // Need to adjust to be 0-360 degrees clockwise from North
+            const bearing_rad = Math.atan2(dx_meters, dy_meters); // dx_meters is 'x' (east), dy_meters is 'y' (north)
+
+            // Convert to degrees and adjust for 0-360, clockwise from North
+            let bearing_deg = bearing_rad * (180 / Math.PI);
+            bearing_deg = (bearing_deg + 360) % 360; // Ensure positive and within 0-360 range
+
+            return { distance, bearing: bearing_deg };
         }
 
         static #createShiftButton(fontAwesomeClass) {
@@ -503,7 +539,8 @@
             useAcronyms: false,
             useTitleCase: false,
             useStateHwy: false,
-            removeNewLines: false
+            removeNewLines: false,
+            collapsedSections: {}
         };
 
         let loadedSettings = {}; // Initialize as an empty object
@@ -583,16 +620,7 @@
     }
 
     function getUrl(extent, gisLayer) {
-        // if (gisLayer.spatialReference) {
-        //     const proj = new OpenLayers.Projection(`EPSG:${gisLayer.spatialReference}`);
-        //     let new_extent = extent.clone();
-        //     new_extent.transform(W.map.getProjectionObject(), proj); // do not transform original extent
-        //     extent = new_extent;
-        // }
         const layerOffset = settings.getLayerSetting(gisLayer.id, 'offset') ?? { x: 0, y: 0 };
-        if (!layerOffset) {
-            layerOffset = { x: 0, y: 0 };
-        }
         const geometry = {
             xmin: extent[0] - layerOffset.x,
             ymin: extent[1] - layerOffset.y,
@@ -687,7 +715,7 @@
     }
 
 
-    function getCountiesUrl(extent) {
+    function getCountiesUrl() {
         const geometry = getArcGisMapExtentGeometry();
         const url = `${COUNTIES_URL2}/query?geometry=${encodeURIComponent(JSON.stringify(geometry))}`;
         return `${url}&outFields=NAME as BASENAME%2CCODE as STATE&returnGeometry=false&spatialRel=esriSpatialRelIntersects`
@@ -863,6 +891,17 @@
         }
         return label;
     }
+
+    let lastFeatureId = 0;
+    function generateFeatureId() {
+        lastFeatureId++;
+        return lastFeatureId;
+    }
+
+    // SDK: Remove these once Map.getFeaturesByProperty is implemented: https://issuetracker.google.com/issues/419596843
+    let defaultFeatures = [];
+    let roadFeatures = [];
+
     function processFeatures(data, token, gisLayer) {
         const features = [];
         if (data.skipIt) {
@@ -890,10 +929,9 @@
                 let error = false;
                 const distinctValues = [];
                 items.forEach(item => {
+                    const featuresToAdd = [];
                     let skipIt = false;
                     if (!token.cancel && !error) {
-                        let feature;
-                        let featureGeometry;
                         let area;
                         if (gisLayer.distinctFields) {
                             if (distinctValues.some(v => gisLayer.distinctFields.every(
@@ -907,57 +945,45 @@
                             }
                         }
                         if (!skipIt) {
-                            let isPolyLine = false;
                             const layerOffset = settings.getLayerSetting(gisLayer.id, 'offset') ?? { x: 0, y: 0 };
                             if (!item.geometry && ["RawPointData",].indexOf(gisLayer.serverType) >= 0){
                                 item.geometry = "RawPointData"
                             }
                             if (item.geometry) {
                                 if (item.geometry.x) {
-                                    featureGeometry = new OpenLayers.Geometry.Point(
-                                        item.geometry.x + layerOffset.x,
-                                        item.geometry.y + layerOffset.y
-                                    );
-                                    // SDK
-                                    // featureGeometry = turf.point([item.geometry.x + layerOffset.x, item.geometry.y + layerOffset.y]);
-                                    // featureGeometry = turf.toWgs84(featureGeometry);
+                                    const feature = turf.toWgs84(turf.point([item.geometry.x + layerOffset.x, item.geometry.y + layerOffset.y]));
+                                    featuresToAdd.push(feature);
                                 } else if (item.geometry.points) {
-                                    // @TODO Fix for multiple points instead of just grabbing first.
-                                    featureGeometry = new OpenLayers.Geometry.Point(
-                                        item.geometry.points[0][0] + layerOffset.x,
-                                        item.geometry.points[0][1] + layerOffset.y
-                                    );
+                                    const points = item.geometry.points.map(point => turf.toWgs84(turf.point([
+                                        point[0] + layerOffset.x,
+                                        point[1] + layerOffset.y
+                                    ])));
+                                    featuresToAdd.push(...points);
                                 } else if (item.geometry.rings) {
                                     const rings = [];
                                     item.geometry.rings.forEach(ringIn => {
-                                        const pnts = [];
+                                        const ring = [];
                                         for (let i = 0; i < ringIn.length; i++) {
-                                            pnts.push(new OpenLayers.Geometry.Point(
+                                            ring.push([
                                                 ringIn[i][0] + layerOffset.x,
                                                 ringIn[i][1] + layerOffset.y
-                                            ));
+                                            ]);
                                         }
-                                        rings.push(new OpenLayers.Geometry.LinearRing(pnts));
+                                        rings.push(ring);
                                     });
-                                    featureGeometry = new OpenLayers.Geometry.Polygon(rings);
-                                    if (gisLayer.areaToPoint) {
-                                        featureGeometry = featureGeometry.getCentroid();
-                                    } else {
-                                        area = featureGeometry.getArea();
-                                    }
+                                    const feature = turf.toWgs84(turf.polygon(rings));
+                                    featuresToAdd.push(feature);
+                                    area = turf.area(feature);
                                 } else if (data.geometryType === 'esriGeometryPolyline') {
                                     // We have to handle polylines differently since each item can have multiple features.
                                     // In terms of ArcGIS, each feature's geometry can have multiple paths.  For instance
                                     // a single road can be broken into parts that are physically not connected to each other.
 
-                                    const displayLabelsAtZoom = getGisLayerLabelsVisibleAtZoom(gisLayer, getGisLayerVisibleAtZoom(gisLayer));
-                                    const label = processLabel(gisLayer, item, displayLabelsAtZoom, area, true);
-
                                     // Use Turf library to clip the geometry to the screen bounds.
                                     // This allows labels to stay in view on very long roads.
                                     const mls = turf.multiLineString(item.geometry.paths);
                                     const e = getMercatorMapExtent();
-                                    const bbox = [e.left, e.bottom, e.right, e.top];
+                                    const bbox = [e[0], e[1], e[2], e[3]];
                                     const clipped = turf.bboxClip(mls, bbox);
                                     if (clipped.geometry.type === 'LineString') {
                                         item.geometry.paths = [clipped.geometry.coordinates];
@@ -967,26 +993,16 @@
 
                                     item.geometry.paths.forEach(path => {
                                         const pointList = [];
-                                        path.forEach(point => pointList.push(new OpenLayers.Geometry.Point(
+                                        path.forEach(point => pointList.push([
                                             point[0] + layerOffset.x,
                                             point[1] + layerOffset.y
-                                        )));
-                                        featureGeometry = new OpenLayers.Geometry.LineString(pointList);
-                                        featureGeometry.skipDupeCheck = true;
-
-                                        const attributes = {
-                                            layerID: gisLayer.id,
-                                            label
-                                        };
-
-                                        const lineFeature = new OpenLayers.Feature.Vector(featureGeometry, attributes);
-                                        features.push(lineFeature);
-                                        if (isPopupVisible) {
-                                            addLabelToLayer(gisLayer.name, label);
-                                        }
+                                        ]));
+                                        const feature = turf.toWgs84(turf.lineString(pointList));
+                                        feature.skipDupeCheck = true;
+                                        featuresToAdd.push(feature);
                                     });
-                                    isPolyLine = true;
                                 } else if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+                                   //TODO: turf and featuresToAdd
                                     if (item.geometry.type == "GeometryCollection") {
                                         let props = item.properties;
                                         item = item.geometry.geometries[0];
@@ -1071,24 +1087,23 @@
                                 } else {
                                     logDebug(`Unexpected feature type in layer: ${JSON.stringify(item)}`);
                                     logError(`Error: Unexpected feature type in layer "${gisLayer.name}"`);
+                                    $(`#gis-layer-${gisLayer.id}-container > label`).css('color', 'red');
                                     error = true;
                                 }
-                                if (!error && !isPolyLine && featureGeometry) {
+                                if (!error && featuresToAdd.length) {
                                     const displayLabelsAtZoom = getGisLayerLabelsVisibleAtZoom(gisLayer, getGisLayerVisibleAtZoom(gisLayer));
                                     const label = processLabel(gisLayer, item, displayLabelsAtZoom, area);
-                                    const attributes = {
-                                        layerID: gisLayer.id,
-                                        label
-                                    };
-                                    // SDK
-                                    // featureGeometry.id = gisLayer.id;
-                                    // featureGeometry.properties = attributes;
-                                    // features.push(featureGeometry);
-                                    feature = new OpenLayers.Feature.Vector(featureGeometry, attributes);
-                                    features.push(feature);
+                                    featuresToAdd.forEach(feature => {
+                                        feature.properties = {
+                                            layerID: gisLayer.id,
+                                            label
+                                        };
+                                        feature.id = generateFeatureId();
+                                    });
                                     if (isPopupVisible) {
                                         addLabelToLayer(gisLayer.name, label);
                                     }
+                                    features.push(...featuresToAdd);
                                 }
                             }
                         }
@@ -1100,15 +1115,13 @@
             // Check for duplicate geometries.
             for (let i = 0; i < features.length; i++) {
                 const f1 = features[i];
-                let labels = [f1.attributes.label];
-                if (!f1.geometry.skipDupeCheck) {
-                    const c1 = f1.geometry.getCentroid();
-
+                if (f1.geometry.type === 'Point' && !f1.skipDupeCheck && f1.properties.label) {
+                    let labels = [f1.properties.label];
                     for (let j = i + 1; j < features.length; j++) {
                         const f2 = features[j];
-                        if (!f2.geometry.skipDupeCheck && f2.geometry.getCentroid().distanceTo(c1) < 1) {
+                        if (f2.geometry.type === 'Point' && !f2.skipDupeCheck && f2.properties.label && turf.distance(f1, f2, { units: 'meters' }) < 1) {
                             features.splice(j, 1);
-                            labels.push(f2.attributes.label);
+                            labels.push(f2.properties.label);
                             j--;
                         }
                     }
@@ -1126,21 +1139,52 @@
                             labels = labels.slice(0, 10);
                             labels.push(`(${len - 10} more...)`);
                         }
-                        f1.attributes.label = _.uniq(labels).join('\n');
+                        f1.properties.label = _.uniq(labels).join('\n');
                     } else {
-                        let { label } = f1.attributes;
+                        let { label } = f1.properties;
                         ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
-                        f1.attributes.label = label;
+                        f1.properties.label = label;
                     }
                 }
             }
 
-            // SDK: Swap this when ready.
-            const layer = gisLayer.isRoadLayer ? roadLayer : mapLayer;
-            layer.removeFeatures(layer.getFeaturesByAttribute('layerID', gisLayer.id));
-            layer.addFeatures(features);
-            // sdk.Map.removeFeaturesFromLayer({ layerName: layer.name, featureIds: [gisLayer.id] });
-            // sdk.Map.addFeaturesToLayer({ layerName: layer.name, features });
+            // Determine layer and source collection
+            const isRoad = gisLayer.isRoadLayer;
+            const layerName = isRoad ? ROAD_LAYER_NAME : DEFAULT_LAYER_NAME;
+            const sourceCollection = isRoad ? roadFeatures : defaultFeatures;
+
+            // Process the collection in one go
+            const { featureIdsToRemove, remainingFeatures } = sourceCollection.reduce(
+                (acc, feature) => {
+                    if (feature.properties.layerID === gisLayer.id) {
+                        acc.featureIdsToRemove.push(feature.id); // Collect IDs to remove
+                    } else {
+                        acc.remainingFeatures.push(feature); // Collect features to keep
+                    }
+                    return acc;
+                },
+                { featureIdsToRemove: [], remainingFeatures: [] }
+            );
+
+            // 2. Add new features to the map
+            sdk.Map.addFeaturesToLayer({ layerName, features });
+            console.log('features added');
+
+            // 1. Remove features from the map (only if there are any)
+            if (featureIdsToRemove.length > 0) {
+                sdk.Map.removeFeaturesFromLayer({ layerName, featureIds: featureIdsToRemove });
+            }
+            console.log('features removed');
+
+            // 3. Create the new collection (kept + new)
+            const newCollection = [...remainingFeatures, ...features];
+
+            // 4. Update the original reference (if needed, or handle based on your scope)
+            if (isRoad) {
+                roadFeatures = newCollection;
+            } else {
+                defaultFeatures = newCollection;
+            }
 
             if (features.length) {
                 $(`label[for="gis-layer-${gisLayer.id}"]`).css({ color: '#00a009' });
@@ -1632,8 +1676,20 @@
                             // Remove features of any layers that won't be mapped.
                             _gisLayers.forEach(gisLayer => {
                                 if (!layersToFetch.includes(gisLayer)) {
-                                    mapLayer.removeFeatures(mapLayer.getFeaturesByAttribute('layerID', gisLayer.id));
-                                    roadLayer.removeFeatures(roadLayer.getFeaturesByAttribute('layerID', gisLayer.id));
+                                    let featureCollection = gisLayer.isRoadLayer ? roadFeatures : defaultFeatures;
+                                    const layerName = gisLayer.isRoadLayer ? ROAD_LAYER_NAME : DEFAULT_LAYER_NAME;
+                                    const featureIds = featureCollection
+                                        .filter(f => f.properties.layerID === gisLayer.id)
+                                        .map(f => f.id);
+                                    if (featureIds.length) {
+                                        sdk.Map.removeFeaturesFromLayer({ layerName, featureIds });
+                                        featureCollection = featureCollection.filter(f => !featureIds.includes(f.id));
+                                        if (gisLayer.isRoadLayer) {
+                                            roadFeatures = featureCollection;
+                                        } else {
+                                            defaultFeatures = featureCollection;
+                                        }
+                                    }
                                 }
                             });
                         }
@@ -1715,8 +1771,8 @@
     function setEnabled(value) {
         settings.enabled = value;
         saveSettingsToStorage();
-        mapLayer.setVisibility(value);
-        roadLayer.setVisibility(value);
+        sdk.Map.setLayerVisibility({ layerName: DEFAULT_LAYER_NAME, visibility: value });
+        sdk.Map.setLayerVisibility({ layerName: ROAD_LAYER_NAME, visibility: value });
         const color = value ? '#00bd00' : '#ccc';
         $('span#gis-layers-power-btn').css({ color });
         if (value) fetchFeatures();
@@ -1806,15 +1862,20 @@
 
     function onChevronClick(evt) {
         const $target = $(evt.currentTarget);
+        const $div = $($target.siblings()[0]);
+        const fieldsetId = $target.parent('fieldset').attr('id');
+        const sectionKey = fieldsetId ? fieldsetId.replace('gis-layers-for-', '') : null;
         $($target.children()[0])
             .toggleClass('fa fa-fw fa-chevron-down')
             .toggleClass('fa fa-fw fa-chevron-right');
-        const $div = $($target.siblings()[0]);
         if ($div.css('display') === 'none') {
             $div.css('display', 'block');
+            if (sectionKey) settings.collapsedSections[sectionKey] = false;
         } else {
             $div.css('display', 'none');
+            if (sectionKey) settings.collapsedSections[sectionKey] = true;
         }
+        if (sectionKey) saveSettingsToStorage();
     }
 
     function doToggleABunch(evt, checkState) {
@@ -1861,41 +1922,61 @@
     }
 
     function initLayer() {
-        const rules = _gisLayers.map(gisLayer => new OpenLayers.Rule({
-            filter: new OpenLayers.Filter.Comparison({
-                type: OpenLayers.Filter.Comparison.EQUAL_TO,
-                property: 'layerID',
-                value: gisLayer.id
-            }),
-            symbolizer: gisLayer.style
-        }));
+        const rules = _gisLayers
+            .filter(gisLayer => gisLayer.style && gisLayer.style !== 'roads')
+            .map(gisLayer => {
+                let style;
+                if (LAYER_STYLES.hasOwnProperty(gisLayer.style)) {
+                    style = LAYER_STYLES[gisLayer.style];
+                } else {
+                    style = gisLayer.style;
+                }
+                return {
+                    predicate: featureProperties => featureProperties.layerID === gisLayer.id,
+                    style
+                };
+            });
 
         setFillParcels(settings.fillParcels);
 
-        const style = new OpenLayers.Style(DEFAULT_STYLE, { rules });
-        let existingLayer;
-        let uniqueName;
-
-        uniqueName = 'wmeGISLayersDefault';
-        existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't working.
-        if (existingLayer) W.map.removeLayer(existingLayer);
-        mapLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Default', {
-            uniqueName,
-            styleMap: new OpenLayers.StyleMap(style)
+        try {
+            sdk.Map.removeLayer({ layerName: DEFAULT_LAYER_NAME });
+        } catch (e) {
+            // If InvalidStateError, then the layer doesn't exist yet. Ignore the error
+            if (!(e instanceof sdk.Errors.InvalidStateError)) {
+                throw e;
+            }
+        }
+        sdk.Map.addLayer({
+            layerName: DEFAULT_LAYER_NAME,
+            styleContext: {
+                getLabel: context => context.feature?.properties?.label
+            },
+            styleRules: [{ style: DEFAULT_STYLE }, ...rules],
+            zIndexing: true
         });
 
-        uniqueName = 'wmeGISLayersRoads';
-        existingLayer = W.map.layers.find(l => l.uniqueName === uniqueName); // Note: W.map.getLayerByUniqueName(...) isn't wworking.
-        if (existingLayer) W.map.removeLayer(existingLayer);
-        roadLayer = new OpenLayers.Layer.Vector('PY GIS Layers - Roads', {
-            uniqueName,
-            styleMap: new OpenLayers.StyleMap(ROAD_STYLE)
+        try {
+            sdk.Map.removeLayer({ layerName: ROAD_LAYER_NAME });
+        } catch (e) {
+            // If InvalidStateError, then the layer doesn't exist yet. Ignore the error
+            if (!(e instanceof sdk.Errors.InvalidStateError)) {
+                throw e;
+            }
+        }
+        sdk.Map.addLayer({
+            layerName: ROAD_LAYER_NAME,
+            styleContext: {
+                getLabel: context => context.feature?.properties?.label,
+                getOffset: () => -(sdk.Map.getZoomLevel() + 5),
+                getSmooth: () => '',
+                getReadable: () => '1'
+            },
+            styleRules: [{ style: ROAD_STYLE }]
         });
 
-        mapLayer.setVisibility(settings.enabled);
-        roadLayer.setVisibility(settings.enabled);
-
-        W.map.addLayers([roadLayer, mapLayer]);
+        sdk.Map.setLayerVisibility({ layerName: DEFAULT_LAYER_NAME, visibility: settings.enabled });
+        sdk.Map.setLayerVisibility({ layerName: ROAD_LAYER_NAME, visibility: settings.enabled });
     } // END InitLayer
 
     function initLayersTab() {
@@ -1919,14 +2000,17 @@
                     $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
                         .click(onChevronClick).append(
                             $('<i>', {
-                                class: 'fa fa-fw fa-chevron-down',
+                                class: settings.collapsedSections[st] ? 'fa fa-fw fa-chevron-right' : 'fa fa-fw fa-chevron-down',
                                 style: 'cursor: pointer;font-size: 12px;margin-right: 4px'
                             }),
                             $('<span>', {
                                 style: 'font-size:14px;font-weight:600;text-transform: uppercase; cursor: pointer'
                             }).text(STATES.toFullName(st))
                         ),
-                    $('<div>', { id: `${st}_body` }).append(
+                    $('<div>', {
+                        id: `${st}_body`,
+                        style: settings.collapsedSections[st] ? 'display: none;' : 'display: block;'
+                    }).append(
                         $('<div>').css({ 'font-size': '11px' }).append(
                             $('<span>').append(
                                 'Select ',
@@ -2193,14 +2277,12 @@
                             }
                         } else if (fldName === 'style') {
                             layerDef.isRoadLayer = value === 'roads';
-                            if (LAYER_STYLES.hasOwnProperty(value)) {
-                                value = LAYER_STYLES[value];
-                            } else if (!layerDef.isRoadLayer) {
+                            if (!layerDef.isRoadLayer && !LAYER_STYLES.hasOwnProperty(value)) {
                                 // If style is not defined, try to read in as JSON (custom style)
                                 try {
                                     value = JSON.parse(value);
                                 } catch (ex) {
-                                    // ignore error
+                                    logError(`Invalid style definition for layer "${layerDef.id}".`);
                                 }
                             }
                         } else if (fldName === 'state') {
@@ -2257,7 +2339,6 @@
         _gisLayers = [];
         if (firstCall) {
             userInfo = sdk.State.getUserInfo();
-            labelProcessingGlobalVariables.W = W;
             labelProcessingGlobalVariables.sdk = sdk;
             initRoadStyle();
             loadSettingsFromStorage();
