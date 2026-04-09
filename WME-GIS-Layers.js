@@ -1204,7 +1204,12 @@
         $($target.children()[0])
             .toggleClass('fa fa-fw fa-chevron-down')
             .toggleClass('fa fa-fw fa-chevron-right');
-        $($target.siblings()[0]).toggleClass('collapse');
+        const $div = $($target.siblings()[0]);
+        if ($div.css('display') === 'none') {
+            $div.css('display', 'block');
+        } else {
+            $div.css('display', 'none');
+        }
     }
 
     function doToggleABunch(evt, checkState) {
