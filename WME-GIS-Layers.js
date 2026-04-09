@@ -1589,13 +1589,9 @@
                                 // eslint-disable-next-line no-eval
                                 value = eval(`(function(label, fieldValues){${value}})`);
                             } catch (ex) {
-                                if (ex instanceof EvalError) {
-                                    result.evalError = true;
-                                } else {
-                                    logError(`Error loading label processing function for layer "${
-                                        layerDef.id}".`);
-                                    logDebug(ex);
-                                }
+                                logError(`Error loading label processing function for layer "${
+                                    layerDef.id}".`);
+                                logDebug(ex);
                             }
                         } else if (fldName === 'style') {
                             layerDef.isRoadLayer = value === 'roads';
