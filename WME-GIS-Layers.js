@@ -3,15 +3,17 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2024.08.19.000-py028
+// @version      2024.09.03.002-py028
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic
 // @match         *://*.waze.com/*editor*
 // @exclude       *://*.waze.com/user/editor*
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
-// @grant        GM_xmlhttpRequest
+// @require      https://update.greasyfork.org/scripts/506615/1440562/esprima-next.js
+// @require      https://update.greasyfork.org/scripts/506614/1440561/ESTreeProcessor.js
 // @connect      greasyfork.org
+// @grant        GM_xmlhttpRequest
 // @grant        GM_info
 // @license      GNU GPLv3
 // @contributionURL https://github.com/WazeDev/Thank-The-Authors
@@ -59,6 +61,8 @@
 /* global WazeWrap */
 /* global _ */
 /* global turf */
+/* global esprima */
+/* global ESTreeProcessor */
 
 (function main() {
     'use strict';
@@ -612,14 +616,14 @@
     let _statesInExtent = [];
 
     function getFetchableLayers(getInvisible) {
-        if (W.map.getZoom() < 12 - 12) return []; //TODO: CHECK THIS LINE
+        if (W.map.getZoom() < 12) return [];
         return _gisLayers.filter(gisLayer => {
             const isValidUrl = gisLayer.url && gisLayer.url.trim().length > 0;
             const isVisible = (getInvisible || _settings.visibleLayers.includes(gisLayer.id))
                 && _settings.selectedStates.includes(gisLayer.state);
             const isInState = gisLayer.state === 'PRY' || _countiesInExtent.some(county => county.stateInfo[1] === gisLayer.state);
             // Be sure to use hasOwnProperty when checking this, since 0 is a valid value.
-            const isValidZoom = getInvisible || W.map.getZoom() - 12 >= (gisLayer.hasOwnProperty('visibleAtZoom')
+            const isValidZoom = getInvisible || W.map.getZoom() >= (gisLayer.hasOwnProperty('visibleAtZoom')
                 ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM);
             return isValidUrl && isInState && isVisible && isValidZoom;
         });
@@ -677,6 +681,88 @@
         [/\bLANE$/, 'LN'], [/\bPARK$/, 'PK'], [/\bPLACE$/, 'PL'], [/\bROAD$/, 'RD'], [/\bSTREET$/, 'ST'],
         [/\bTERRACE$/, 'TER']
     ];
+
+    const labelProcessingGlobalVariables = {
+        Number,
+        Math,
+        Boolean,
+        parseInt,
+        Date,
+        _regexReplace: {
+            // Strip leading zeros or blank full label for any label starting with a non-digit or
+            // is a Zero Address, use with '' as replace.
+            r0: /^(0+(\s.*)?|\D.*)/,
+            // Strip Everything After Street Type to end of the string by use $1 and $2 capture
+            // groups, use with replace '$1$2'
+            // eslint-disable-next-line max-len
+            r1: /^(.* )(Ave(nue)?|Dr(ive)?|St(reet)?|C(our)?t|Cir(cle)?|Blvd|Boulevard|Pl(ace)?|Ln|Lane|Fwy|Freeway|R(oa)?d|Ter(r|race)?|Tr(ai)?l|Way|Rte \d+|Route \d+)\b.*/gi,
+            // Strip SPACE 5 Digits from end of string, use with replace ''
+            r2: /\s\d{5}$/,
+            // Strip Everything after a "~", ",", ";" to the end of the string, use with replace ''
+            r3: /(~|,|;|\s?\r\n).*$/,
+            // Move the digits after the last space to before the rest of the string using, use with
+            // replace '$2 $1'
+            r4: /^(.*)\s(\d+).*/,
+            // Insert newline between digits (including "-") and everything after the digits,
+            // except(and before) a ",", use with replace '$1\n$2'
+            r5: /^([-\d]+)\s+([^,]+).*/,
+            // Insert newline between digits and everything after the digits, use with
+            // replace '$1\n$2'
+            r6: /^(\d+)\s+(.*)/
+        }
+    };
+
+    function processLabel(gisLayer, item, displayLabelsAtZoom, area, isPolyLine = false) {
+        let label = '';
+        let attrs = [];
+        if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
+            attrs = item.properties;
+        } else if (["RawPointData"].indexOf(gisLayer.serverType) >= 0) {
+            attrs = item;
+        } else {
+            attrs = item.attributes;
+        }
+        if (gisLayer.labelHeaderFields) {
+            label = `${gisLayer.labelHeaderFields.map(
+                fieldName => attrs[fieldName]
+            ).join(' ').trim()}\n`;
+        }
+        if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
+            label += gisLayer.labelFields.map(
+                fieldName => attrs[fieldName]
+            ).join(' ').trim();
+            if (gisLayer.processLabel) {
+                if (gisLayer.labelProcessingError) {
+                    label = 'ERROR';
+                } else {
+                    labelProcessingGlobalVariables.label = label;
+                    labelProcessingGlobalVariables.fieldValues = attrs;
+                    const processor = new ESTreeProcessor();
+                    const result = processor.process(gisLayer.processLabel, labelProcessingGlobalVariables);
+                    label = result.output?.trim() ?? '';
+                }
+            }
+        }
+
+        if (!isPolyLine) {
+            if (label && [
+                LAYER_STYLES.points, LAYER_STYLES.parcels, LAYER_STYLES.state_points,
+                LAYER_STYLES.state_parcels
+            ].includes(gisLayer.style)) {
+                if (_settings.addrLabelDisplay === 'hn') {
+                    const m = label.match(/^\d+/);
+                    label = m ? m[0] : '';
+                } else if (_settings.addrLabelDisplay === 'street') {
+                    const m = label.match(/^(?:\d+\s)?(.*)/);
+                    label = m ? m[1].trim() : '';
+                }
+                else if (_settings.addrLabelDisplay === 'none') {
+                    label = '';
+                }
+            }
+        }
+        return label;
+    }
     function processFeatures(data, token, gisLayer) {
         const features = [];
         if (data.skipIt) {
@@ -769,25 +855,11 @@
                                     // We have to handle polylines differently since each item can have multiple features.
                                     // In terms of ArcGIS, each feature's geometry can have multiple paths.  For instance
                                     // a single road can be broken into parts that are physically not connected to each other.
-                                    let label = '';
                                     const hasVisibleAtZoom = gisLayer.hasOwnProperty('visibleAtZoom');
                                     const hasLabelsVisibleAtZoom = gisLayer.hasOwnProperty('labelsVisibleAtZoom');
                                     const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                         : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
-                                    if (gisLayer.labelHeaderFields) {
-                                        label = `${gisLayer.labelHeaderFields.map(
-                                            fieldName => item.attributes[fieldName]
-                                        ).join(' ').trim()}\n`;
-                                    }
-                                    if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
-                                        label += gisLayer.labelFields.map(
-                                            fieldName => item.attributes[fieldName]
-                                        ).join(' ').trim();
-                                        if (gisLayer.processLabel) {
-                                            label = gisLayer.processLabel(label, item.attributes);
-                                            label = label ? label.trim() : '';
-                                        }
-                                    }
+                                    const label = processLabel(gisLayer, item, displayLabelsAtZoom, area, true);
 
                                     // Use Turf library to clip the geometry to the screen bounds.
                                     // This allows labels to stay in view on very long roads.
@@ -911,45 +983,7 @@
                                     const hasLabelsVisibleAtZoom = gisLayer.hasOwnProperty('labelsVisibleAtZoom');
                                     const displayLabelsAtZoom = hasLabelsVisibleAtZoom ? gisLayer.labelsVisibleAtZoom
                                         : (hasVisibleAtZoom ? gisLayer.visibleAtZoom : DEFAULT_VISIBLE_AT_ZOOM) + 1;
-                                    let label = '';
-                                    let attrs = [];
-                                    if (["GeoNode", "CartoDB"].indexOf(gisLayer.serverType) >= 0){
-                                        attrs = item.properties;
-                                    } else if (["RawPointData"].indexOf(gisLayer.serverType) >= 0) {
-                                        attrs = item;
-                                    } else {
-                                        attrs = item.attributes;
-                                    }
-                                    if (gisLayer.labelHeaderFields) {
-                                        label = `${gisLayer.labelHeaderFields.map(
-                                            fieldName => attrs[fieldName]
-                                        ).join(' ').trim()}\n`;
-                                    }
-                                    if (W.map.getZoom() - 12 >= displayLabelsAtZoom || area >= 5000) {
-                                        label += gisLayer.labelFields.map(
-                                            fieldName => attrs[fieldName]
-                                        ).join(' ').trim();
-                                        if (gisLayer.processLabel) {
-
-                                            label = gisLayer.processLabel(label, attrs);
-                                            label = label ? label.trim() : '';
-                                        }
-                                    }
-                                    if (label && [
-                                        LAYER_STYLES.points, LAYER_STYLES.parcels, LAYER_STYLES.state_points,
-                                        LAYER_STYLES.state_parcels
-                                    ].includes(gisLayer.style)) {
-                                        if (_settings.addrLabelDisplay === 'hn') {
-                                            const m = label.match(/^\d+/);
-                                            label = m ? m[0] : '';
-                                        } else if (_settings.addrLabelDisplay === 'street') {
-                                            const m = label.match(/^(?:\d+\s)?(.*)/);
-                                            label = m ? m[1].trim() : '';
-                                        }
-                                        else if (_settings.addrLabelDisplay === 'none') {
-                                            label = '';
-                                        }
-                                    }
+                                    const label = processLabel(gisLayer, item, displayLabelsAtZoom, area);
                                     const attributes = {
                                         layerID: gisLayer.id,
                                         label
@@ -984,7 +1018,6 @@
                             j--;
                         }
                     }
-                }
                     labels = _.uniq(labels);
                     if (labels.length > 1) {
                         labels.forEach((label, idx) => {
@@ -1004,6 +1037,7 @@
                         let { label } = f1.attributes;
                         ROAD_ABBR.forEach(abbr => (label = label.replace(abbr[0], abbr[1])));
                         f1.attributes.label = label;
+                    }
                 }
             }
 
@@ -1586,11 +1620,10 @@
                             value = value.split(',').map(item => item.trim());
                         } else if (fldName === 'processLabel') {
                             try {
-                                // eslint-disable-next-line no-eval
-                                value = eval(`(function(label, fieldValues){${value}})`);
+                                value = esprima.parseScript(`function __$proc(){${value}} __$proc();`);
                             } catch (ex) {
-                                logError(`Error loading label processing function for layer "${
-                                    layerDef.id}".`);
+                                layerDef.labelProcessingError = true;
+                                logError(`Error loading label processing function for layer "${layerDef.id}".`);
                                 logDebug(ex);
                             }
                         } else if (fldName === 'style') {
@@ -1656,6 +1689,7 @@
     async function init(firstCall = true) {
         _gisLayers = [];
         if (firstCall) {
+            labelProcessingGlobalVariables.W = W;
             loadScriptUpdateMonitor();
             initRoadStyle();
             loadSettingsFromStorage();
@@ -1684,15 +1718,6 @@
         const t0 = performance.now();
         try {
             const result = await loadSpreadsheetAsync();
-            if (result.evalError) {
-                WazeWrap.Alerts.info(
-                    SCRIPT_NAME,
-                    'Could not load. Please see <a href="https://www.waze.com/forum/viewtopic.php?t=399668" target="__blank"> these instructions</a>.',
-                    true,
-                    true
-                );
-                return;
-            }
             if (result.error) {
                 logError(result.error);
                 return;
@@ -1728,7 +1753,6 @@
             logDebug('Initializing...');
             init();
         } else {
-            logDebug('Bootstrap ha fallado. Reintentando...');
             setTimeout(onWmeReady, 100);
         }
     }
