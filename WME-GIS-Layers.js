@@ -253,7 +253,7 @@
         toAbbrArray() { return this._states.map(a => a[1]); },
         fromId(id) { return this._states.find(a => a[2] === id); }
     };
-    const DEFAULT_VISIBLE_AT_ZOOM = 6;
+    const DEFAULT_VISIBLE_AT_ZOOM = 18;
     const SETTINGS_STORE_NAME = 'wme_gis_layers';
     const COUNTIES_URL = 'https://analisis.stp.gov.py:443/user/ine/api/v2/';
     // const COUNTIES_URL2 = 'https://services2.arcgis.com/tnyi76ruua1nbtl3/ArcGIS/rest/services/Paraguay_Interactive/FeatureServer/0';
@@ -270,7 +270,7 @@
     let _lastToken = {};
 
     const DEBUG = true;
-    //function log(message) { console.log('PY GIS Layers:', message); }
+    // function log(message) { console.log('PY GIS Layers:', message); }
     function logError(message) { console.error(`${SCRIPT_NAME}:`, message); }
     function logDebug(message) { if (DEBUG) console.debug(`${SCRIPT_NAME}:`, message); }
     // function logWarning(message) { console.warn('PY GIS Layers:', message); }
@@ -434,6 +434,7 @@
             enabled: true,
             fillParcels: false,
             toggleHnsOnlyShortcut: '',
+            toggleEnabledShortcut: '',
             oneTimeAlerts: {},
             layers: {}
         };
@@ -475,9 +476,21 @@
             }
             _settings.toggleHnsOnlyShortcut = keys;
         }
+        if (W.accelerators.Actions.GisLayersToggleEnabled) {
+            let keys = '';
+            const { shortcut } = W.accelerators.Actions.GisLayersToggleEnabled;
+            if (shortcut) {
+                if (shortcut.altKey) keys += 'A';
+                if (shortcut.shiftKey) keys += 'S';
+                if (shortcut.ctrlKey) keys += 'C';
+                if (keys.length) keys += '+';
+                if (shortcut.keyCode) keys += shortcut.keyCode;
+            }
+            _settings.toggleEnabledShortcut = keys;
+        }
         _settings.lastVersion = SCRIPT_VERSION;
         localStorage.setItem(SETTINGS_STORE_NAME, JSON.stringify(_settings));
-        logDebug('Configuracion guardada');
+        logDebug('Settings saved');
     }
 
     function getUrl(extent, gisLayer) {
@@ -706,11 +719,10 @@
                             }
                             // Special handling for this layer, because it doesn't have a geometry property.
                             // Coordinates are stored in the attributes.
-                            // if (gisLayer.id === 'nc-richmond-co-pts') {
-                            //     const pt = new OpenLayers.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
-                            //     pt.transform(W.map.getOLMap().displayProjection, W.map.getProjectionObject());
-                            //     item.geometry = pt;
-                            // }
+                            if (gisLayer.id === 'nc-richmond-co-pts') {
+                                const pt = new OpenLayers.Geometry.Point(item.attributes.XCOOR, item.attributes.YCOOR);
+                                pt.transform(W.map.getOLMap().displayProjection, W.map.getProjectionObject());
+                                item.geometry = pt;
                             if (!item.geometry && ["RawPointData",].indexOf(gisLayer.serverType) >= 0){
                                 item.geometry = "RawPointData"
                             }
@@ -758,7 +770,7 @@
                                             fieldName => item.attributes[fieldName]
                                         ).join(' ').trim()}\n`;
                                     }
-                                    if (W.map.getZoom() - 12 >= displayLabelsAtZoom || area >= 5000) {  //TODO: CHECK THIS LINE
+                                    if (W.map.getZoom() >= displayLabelsAtZoom || area >= 5000) {
                                         label += gisLayer.labelFields.map(
                                             fieldName => item.attributes[fieldName]
                                         ).join(' ').trim();
@@ -999,7 +1011,7 @@
     function fetchFeatures() {
         if (!_settings.enabled) return;
         if (_ignoreFetch) return;
-        if (W.map.getZoom() < 12 - 12) {// TODO: CHECK THIS LINE
+        if (W.map.getZoom() < 12) {
             filterLayerCheckboxes();
             return;
         }
@@ -1243,6 +1255,10 @@
         }
     }
 
+    function onToggleGisLayersShortcutKey() {
+        setEnabled(!_settings.enabled);
+    }
+
     function initLayer() {
         const rules = _gisLayers.map(gisLayer => new OpenLayers.Rule({
             filter: new OpenLayers.Filter.Comparison({
@@ -1291,10 +1307,10 @@
                     onOnlyShowApplicableLayersChanged
                 ).prop('checked', _settings.onlyShowApplicableLayers),
                 $('<label>', { for: 'only-show-applicable-gis-layers' })
-                    .css({ 'white-space': 'pre-line' }).text('Solo mostrar capas aplicables')
+                    .css({ 'white-space': 'pre-line' }).text('Only show applicable layers')
             ),
             $('.gis-layers-state-checkbox:checked').length === 0
-                ? $('<div>').text('Marcar categoria de capas en solapa Configuraciones')
+                ? $('<div>').text('Turn on layer categories in the Settings tab.')
                 : states.map(st => $('<fieldset>', {
                     id: `gis-layers-for-${st}`,
                     style: 'border:1px solid silver;padding:4px;border-radius:4px;-webkit-padding-before: 0;'
@@ -1314,11 +1330,11 @@
                             $('<span>').append(
                                 'Select ',
                                 $('<a>', { href: '#' })
-                                    .text('Todos')
+                                    .text('All')
                                     .click(onSelectAllClick),
                                 ' / ',
                                 $('<a>', { href: '#' })
-                                    .text('Ninguno')
+                                    .text('None')
                                     .click(onSelectNoneClick)
                             )
                         ),
@@ -1337,7 +1353,7 @@
                                             $('<label>', { for: id, class: 'gis-state-layer-label' })
                                                 .css({ 'white-space': 'pre-line' })
                                                 .text(`${gisLayer.name}${gisLayer.restrictTo ? ' *' : ''}`)
-                                                .attr('title', gisLayer.restrictTo ? `Restringido a: ${gisLayer.restrictTo}` : '')
+                                                .attr('title', gisLayer.restrictTo ? `Restricted to: ${gisLayer.restrictTo}` : '')
                                                 .contextmenu(evt => {
                                                     evt.preventDefault();
                                                     // TODO - enable the layer if it isn't already.
@@ -1371,13 +1387,13 @@
                     style: 'margin-bottom:0px;border-bottom-style:none;width:auto;'
                 }).append($('<span>', {
                     style: 'font-size:14px;font-weight:600;text-transform: uppercase;'
-                }).text('Etiquetas')),
+                }).text('Labels')),
                 $('<div>', { id: 'labelSettings' }).append(
                     $('<div>', { class: 'controls-container' }).css({ 'padding-top': '2px' }).append(
                         $('<label>', { style: 'font-weight:normal;' }).text('Addresses:'),
-                        createRadioBtn('gisAddrDisplay', 'hn', 'Nro Casa', _settings.addrLabelDisplay === 'hn'),
-                        createRadioBtn('gisAddrDisplay', 'street', 'Calle', _settings.addrLabelDisplay === 'street'),
-                        createRadioBtn('gisAddrDisplay', 'all', 'Ambos', _settings.addrLabelDisplay === 'all'),
+                        createRadioBtn('gisAddrDisplay', 'hn', 'HN', _settings.addrLabelDisplay === 'hn'),
+                        createRadioBtn('gisAddrDisplay', 'street', 'Street', _settings.addrLabelDisplay === 'street'),
+                        createRadioBtn('gisAddrDisplay', 'all', 'Both', _settings.addrLabelDisplay === 'all'),
                         createRadioBtn('gisAddrDisplay', 'none', 'None', _settings.addrLabelDisplay === 'none'),
                         $('<i>', {
                             class: 'waze-tooltip',
@@ -1397,7 +1413,7 @@
                     style: 'margin-bottom:0px;border-bottom-style:none;width:auto;'
                 }).append($('<span>', {
                     style: 'font-size:14px;font-weight:600;text-transform: uppercase;'
-                }).text('Categoria de Capas')),
+                }).text('Layer Categories')),
                 $('<div>', { id: 'states_body' }).append(
                     $('<div>').css({ 'font-size': '11px' }).append(
                         $('<span>').append(
@@ -1430,13 +1446,13 @@
                     $('<legend>', { style: 'margin-bottom:0px;border-bottom-style:none;width:auto;' })
                         .append(
                             $('<span>', { style: 'font-size:14px;font-weight:600;text-transform: uppercase;' })
-                                .text('Apariencia')
+                                .text('Appearance')
                         ),
                     $('<div>', { class: 'controls-container' }).css({ 'padding-top': '2px' }).append(
                         $('<input>', { type: 'checkbox', id: 'fill-parcels' })
                             .change(onFillParcelsCheckedChanged)
                             .prop('checked', _settings.fillParcels),
-                        $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', color: '#777' }).text('Llenar parcelas')
+                        $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', color: '#777' }).text('Fill parcels')
                     )
                 )
         );
@@ -1454,21 +1470,21 @@
                     href: REQUEST_FORM_URL.replace('{username}', user.userName),
                     target: '_blank',
                     style: 'color: #6290b7;font-size: 12px;margin-left: 8px;',
-                    title: 'Reportar capas rotas, bugs, solicitar nuevas capas, nuevas caracteristicas'
-                }).text('Enviar una solicitud'),
+                    title: 'Report broken layers, bugs, request new layers, script features'
+                }).text('Submit a request'),
                 $('<span>', {
                     id: 'gis-layers-refresh',
                     class: 'fa fa-refresh',
                     style: 'float: right;',
                     'data-toggle': 'tooltip',
-                    title: 'Obtener nuevas informaciones del planilla primaria y refrescar todas las capas.'
+                    title: 'Pull new layer info from master sheet and refresh all layers.'
                 }),
                 '<ul class="nav nav-tabs">'
                 + '<li class="active"><a data-toggle="tab" href="#panel-gis-state-layers" aria-expanded="true">'
-                + 'Capas'
+                + 'Layers'
                 + '</a></li>'
                 + '<li><a data-toggle="tab" href="#panel-gis-layers-settings" aria-expanded="true">'
-                + 'Configuracion'
+                + 'Settings'
                 + '</a></li> '
                 + '</ul>',
                 $('<div>', { class: 'tab-content', style: 'padding:8px;padding-top:2px' }).append(
@@ -1483,7 +1499,7 @@
                     class: 'fa fa-power-off',
                     id: 'gis-layers-power-btn',
                     style: `margin-right: 5px;cursor: pointer;color: ${powerButtonColor};font-size: 13px;`,
-                    title: 'Activar/Desactivar Paraguay GIS Layers'
+                    title: 'Toggle Paraguay GIS Layers'
                 }),
                 $('<span>', { title: 'PY GIS Layers' }).text('PY GIS-L')
             ).html();
@@ -1634,19 +1650,24 @@
             initRoadStyle();
             loadSettingsFromStorage();
             installPathFollowingLabels();
-            // W.accelerators.events.listeners was removed in WME beta, so check for it here before calling WazeWrap.Interface.Shortcut
-            // Hopefully there will be a fix or workaround for this issue.
-            if (W.accelerators.events.listeners) {
-                new WazeWrap.Interface.Shortcut(
-                    'GisLayersAddrDisplay',
-                    'Activar/desactivar etiquetas/direcciones solo con numero casa (Paraguay GIS Layers)',
-                    'layers',
-                    'layersToggleGisAddressLabelDisplay',
-                    _settings.toggleHnsOnlyShortcut,
-                    onAddressDisplayShortcutKey,
-                    null
-                ).add();
-            }
+            new WazeWrap.Interface.Shortcut(
+                'GisLayersAddrDisplay',
+                'Toggle HN-only address labels (GIS Layers)',
+                'layers',
+                'layersToggleGisAddressLabelDisplay',
+                _settings.toggleHnsOnlyShortcut,
+                onAddressDisplayShortcutKey,
+                null
+            ).add();
+            new WazeWrap.Interface.Shortcut(
+                'GisLayersToggleEnabled',
+                'Toggle display of GIS Layers',
+                'layers',
+                'layersToggleGisLayersEnabled',
+                _settings.toggleEnabledShortcut,
+                onToggleGisLayersShortcutKey,
+                null
+            ).add();
             window.addEventListener('beforeunload', saveSettingsToStorage, false);
             _layerSettingsDialog = new LayerSettingsDialog();
         }
@@ -1657,27 +1678,27 @@
                 logError(result.error);
                 return;
             }
-            // _layerRefinements.forEach(layerRefinement => {
-            //     const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
-            //     if (layerDef) {
-            //         Object.keys(layerRefinement).forEach(fldName => {
-            //             const value = layerRefinement[fldName];
-            //             if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
-            //                 logDebug(`The "${fldName}" property of layer "${
-            //                     layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
-            //                     + ' The spreadsheet value takes precedence.');
-            //             } else if (value) layerDef[fldName] = value;
-            //         });
-            //     } else {
-            //         logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
-            //             + ' in the spreadsheet.  It can probably be removed from the script.');
-            //     }
-            // });
+            _layerRefinements.forEach(layerRefinement => {
+                const layerDef = _gisLayers.find(layerDef2 => layerDef2.id === layerRefinement.id);
+                if (layerDef) {
+                    Object.keys(layerRefinement).forEach(fldName => {
+                        const value = layerRefinement[fldName];
+                        if (fldName !== 'id' && layerDef.hasOwnProperty(fldName)) {
+                            logDebug(`The "${fldName}" property of layer "${
+                                layerDef.id}" has a value hardcoded in the script, and also defined in the spreadsheet.`
+                                + ' The spreadsheet value takes precedence.');
+                        } else if (value) layerDef[fldName] = value;
+                    });
+                } else {
+                    logDebug(`Refined layer "${layerRefinement.id}" does not have a corresponding layer defined`
+                        + ' in the spreadsheet.  It can probably be removed from the script.');
+                }
+            });
             logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
             initGui(firstCall);
             fetchFeatures();
             $('#gis-layers-refresh').removeClass('fa-spin').css({ cursor: 'pointer' });
-            logDebug('Inicializado.');
+            logDebug('Initialized.');
         } catch (err) {
             logError(err);
         }
@@ -1685,7 +1706,7 @@
 
     function onWmeReady() {
         if (WazeWrap && WazeWrap.Ready) {
-            logDebug('Inicializando...');
+            logDebug('Initializing...');
             init();
         } else {
             logDebug('Bootstrap ha fallado. Reintentando...');
