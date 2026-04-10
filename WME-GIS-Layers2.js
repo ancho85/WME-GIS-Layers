@@ -3,9 +3,9 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/45389
-// @version      2025.06.15.000
+// @version      2025.07.01.001
 // @description  Adds GIS layers in WME
-// @author       MapOMatic
+// @author       MapOMatic / JS55CT
 // @match         *://*.waze.com/*editor*
 // @exclude       *://*.waze.com/user/editor*
 // @exclude       *://*.waze.com/editor/sdk/*
@@ -1155,7 +1155,10 @@
   'use strict';
 
   const SHOW_UPDATE_MESSAGE = true;
-  const SCRIPT_VERSION_CHANGES = ['Major update: migrated to the WME SDK. If you find issues, please report them in Discord or Discuss.'];
+  const SCRIPT_VERSION_CHANGES = [
+    'Minor update:',
+    'Enhanced to play nice with "Dark Mode" :)',
+  ];
 
   // **************************************************************************************************************
   // IMPORTANT: Update this when releasing a new version of script that includes changes to the spreadsheet format
@@ -1171,7 +1174,7 @@
   // ].map(item => `<li>${item}</li>`).join('')}</ul><br>`;
   const GF_URL = 'https://greasyfork.org/scripts/369632-wme-gis-layers';
   // Used in tooltips to tell people who to report issues to.  Update if a new author takes ownership of this script.
-  const SCRIPT_AUTHOR = 'MapOMatic';
+  const SCRIPT_AUTHOR = 'MapOMatic / JS55CT';
   // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
   const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852={username}';
   const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
@@ -1747,7 +1750,25 @@
     logDebug('Settings saved');
   }
 
-  function getUrl(extent, gisLayer) {
+  function getMaxAllowableOffsetForZoom(zoomLevel) {
+    const zoomToOffsetMap = {
+      12: 0.0009, // ~100 meters
+      13: 0.00045, // ~50 meters
+      14: 0.000225, // ~25 meters
+      15: 0.0001125, // ~12.0 meters
+      16: 0.000056, // ~6.0 meters
+      17: 0.000028, // ~3.0 meters
+      18: 0.000014, // ~1.5 meters
+      19: 0.000007, // ~1.0 meters
+      20: 0.000007, // ~1.0 meters
+      21: 0.000007, // ~1.0 meters
+      22: 0.000007, // ~1.0 meters
+    };
+    // Return the offset corresponding to the provided zoom level, or default to highest detail if not found
+    return zoomToOffsetMap[zoomLevel] || zoomToOffsetMap[22];
+  }
+
+  function getUrl(extent, gisLayer, zoom) {
     const layerOffset = settings.getLayerSetting(gisLayer.id, 'offset') ?? { x: 0, y: 0 };
     const geometry = {
       xmin: extent[0] - layerOffset.x,
@@ -1758,7 +1779,10 @@
         wkid: 4326,
       },
     };
+
+    const maxAllowableOffset = getMaxAllowableOffsetForZoom(zoom);
     const geometryStr = JSON.stringify(geometry);
+
     let fields = gisLayer.labelFields;
     if (gisLayer.labelHeaderFields) {
       fields = fields.concat(gisLayer.labelHeaderFields);
@@ -1770,8 +1794,9 @@
     url += gisLayer.token ? `&token=${gisLayer.token}` : '';
     url += `&outFields=${encodeURIComponent(fields.join(','))}`;
     url += '&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometryType=esriGeometryEnvelope';
-    url += `&inSR=${/* gisLayer.spatialReference ? gisLayer.spatialReference : */ '4326'}`; //102100   4326 = WGS84
-    url += '&outSR=4326&f=json'; //3857
+    url += `&inSR=${'4326'}`;
+    url += '&outSR=4326&f=json';
+    url += `&maxAllowableOffset=${maxAllowableOffset}`;
     url += gisLayer.where ? `&where=${encodeURIComponent(gisLayer.where)}` : '';
 
     logDebug(`Request URL: ${url}`);
@@ -1805,13 +1830,11 @@
    */
   function getMapExtent(projection = 'wgs84') {
     const wgs84Extent = sdk.Map.getMapExtent(); // Assume this provides WGS84 coordinates
-    const wgs84LeftBottom = [wgs84Extent[0], wgs84Extent[1]];
-    const wgs84RightTop = [wgs84Extent[2], wgs84Extent[3]];
 
     const wgs84Projections = ['wgs84', 'CRS84', '4326', 'EPSG:4326'];
 
     if (wgs84Projections.includes(projection.toLowerCase())) {
-      return [wgs84LeftBottom[0], wgs84LeftBottom[1], wgs84RightTop[0], wgs84RightTop[1]];
+      return [wgs84Extent[0], wgs84Extent[1], wgs84Extent[2], wgs84Extent[3]];
     } else {
       throw new Error('Unsupported projection type');
     }
@@ -2557,10 +2580,9 @@
     if (!popup) {
       popup = document.createElement('div');
       popup.id = 'layerLabelPopup';
-      popup.style = `position: absolute; background: #f5f5f5; border: 2px solid #007bff; border-radius: 5px; 
+      popup.style = `position: absolute; background: #d3d3d3; border: 2px solid #007bff; border-radius: 5px; 
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); z-index: 1000; width: 500px; max-width: 800px;
-                height: 300px; resize: both; overflow: hidden; max-height: 700px; left: ${popupPosition.left}; top: ${popupPosition.top}; `;
-
+                height: 300px; resize: both; overflow: hidden; max-height: 700px; left: ${popupPosition.left}; top: ${popupPosition.top}; `; 
       const header = document.createElement('div');
       header.style = 'background: #007bff; color: #fff; padding: 5px; cursor: move; border-radius: 3px 3px 0 0; display: flex; justify-content: space-between; align-items: center; height: 30px; ';
 
@@ -2583,7 +2605,7 @@
 
       const formatOptionContainer = document.createElement('div');
       formatOptionContainer.style = 'background: #72767d; color: #fff;';
-
+      
       const firstRow = document.createElement('div');
       firstRow.style = 'display: flex; gap: 10px; align-items: flex-start; justify-content: flex-start;';
 
@@ -2671,6 +2693,7 @@
 
       const contentContainer = document.createElement('div');
       contentContainer.style = 'padding: 5px; overflow-y: auto; overflow-x: auto; height: calc(100% - 110px);';
+
       popup.appendChild(contentContainer);
 
       const mapElement = document.getElementsByTagName('wz-page-content')[0];
@@ -2730,7 +2753,7 @@
         .map((label) => {
           const text = processedLabel(label);
           const copyIcon = '<span style="cursor: pointer; margin-left: 5px;" title="Copy to clipboard">📋</span>';
-          return `<li style="margin-bottom: 0.3em; color: #555;" data-label="${text}">${text}${copyIcon}</li>`;
+          return `<li style="margin-bottom: 0.3em; color: #000000;" data-label="${text}">${text}${copyIcon}</li>`;
         })
         .join('');
 
@@ -2815,7 +2838,7 @@
     await whatsInView();
     lastToken.cancel = true;
     lastToken = { cancel: false, features: [], layersProcessed: 0 };
-    $('.gis-subL1-layer-label').css({ color: '#777' });
+    $('.gis-subL1-layer-label').css({});
     let _layersCleared = false;
     let layersToFetch; // Start with declaration
     if (!_layersCleared) {
@@ -2847,7 +2870,8 @@
     const extentWGS84 = getMapExtent('wgs84'); //extentMercator = getMapExtent('mercator');
 
     layersToFetch.forEach((gisLayer) => {
-      const url = getUrl(extentWGS84, gisLayer);
+      const zoom = sdk.Map.getZoomLevel();
+      const url = getUrl(extentWGS84, gisLayer, zoom);
       GM_xmlhttpRequest({
         url,
         context: lastToken,
@@ -3274,7 +3298,7 @@
                   .css({ 'padding-top': '0px', display: 'block' })
                   .append(
                     $('<input>', { type: 'checkbox', id, class: 'gis-layers-subL1-checkbox' }).change(countrySubL1, onSub1CheckChanged).prop('checked', settings.selectedSubL1.includes(countrySubL1)),
-                    $('<label>', { for: id }).css({ 'white-space': 'pre-line', color: '#777' }).text(fullName)
+                    $('<label>', { for: id }).css({ 'white-space': 'pre-line',}).text(fullName)
                   );
               })
             )
@@ -3291,7 +3315,7 @@
           .css({ 'padding-top': '2px' })
           .append(
             $('<input>', { type: 'checkbox', id: 'fill-parcels' }).change(onFillParcelsCheckedChanged).prop('checked', settings.fillParcels),
-            $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', color: '#777' }).text('Fill parcels')
+            $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', }).text('Fill parcels') 
           )
       )
     );
@@ -3370,10 +3394,8 @@
 
   function initGui(firstCall = true) {
     initLayer();
-
     if (firstCall) {
       initTab(true);
-
       sdk.LayerSwitcher.addLayerCheckbox({ name: 'GIS Layers' });
       sdk.LayerSwitcher.setLayerCheckboxChecked({ name: 'GIS Layers', isChecked: settings.enabled });
       sdk.Events.on({ eventName: 'wme-layer-checkbox-toggled', eventHandler: onLayerCheckboxChanged });
@@ -3505,14 +3527,14 @@
    * @param {Set<string>} regionCodes - Set of subdivision codes used to filter visible GIS layers.
    * @returns {Promise<Object>} - Object containing error information, if any occurs during processing.
    */
-  async function loadSpreadsheetAsync(isoCode, regionCodes) {
+    async function loadSpreadsheetAsync(isoCode, regionCodes) {
     const LAYER_DEF_SPREADSHEET_URL = 'https://sheets.googleapis.com/v4/spreadsheets/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/values/';
     const API_KEY = 'YTJWNVBVRkplbUZUZVVGTlNXOWlVR1pWVjIxcE9VdHJNbVY0TTFoeWNrSlpXbFZuVmtWelRrMVVWUT09';
     const DEC = (s) => atob(atob(s));
 
     let data;
     try {
-      const tabName = isoCode.toUpperCase();
+      const tabName = 'Layer Definitions v2';
       const url = `${LAYER_DEF_SPREADSHEET_URL}${tabName}?${DEC(API_KEY)}`;
       data = await $.getJSON(url);
     } catch (err) {
@@ -3613,7 +3635,7 @@
             }
           });
 
-          if (countryId && subL1Upper) {
+          if (countryId === isoCode.toUpperCase() && subL1Upper) {
             layerDef['countrySubL1'] = `${countryId}-${subL1Upper}`;
           }
 
@@ -3644,6 +3666,12 @@
   }
 
   async function init(firstCall = true) {
+    _gisLayers = [];
+    _whatsInView = {};
+    alreadyLoadedCountries.clear();
+    alreadyLoadedSubL1.clear();
+    countrySubdivisionMapping = {};
+
     if (firstCall) {
       userInfo = sdk.State.getUserInfo();
       labelProcessingGlobalVariables.W = W;
@@ -3655,10 +3683,11 @@
       installPathFollowingLabels();
       window.addEventListener('beforeunload', saveSettingsToStorage, false);
       _layerSettingsDialog = new LayerSettingsDialog();
-      await buildCountrySubdivisionMapping();
+      //await buildCountrySubdivisionMapping();
     }
     const t0 = performance.now();
     try {
+      await buildCountrySubdivisionMapping();
       await loadVisibleCountryData();
       logDebug(`Loaded ${_gisLayers.length} layer definitions in ${Math.round(performance.now() - t0)} ms.`);
       initGui(firstCall);
