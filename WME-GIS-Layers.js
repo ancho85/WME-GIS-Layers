@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         WME GIS Layers
 // @namespace    https://greasyfork.org/users/324334
-// @version      2025.07.13.000-py028
+// @version      2025.07.14.00-py029
 // @description  Adds Paraguay GIS layers in WME
 // @author       MapOMatic / JS55CT / ancho85
 // @match         *://*.waze.com/*editor*
@@ -14,7 +14,7 @@
 // @require      https://update.greasyfork.org/scripts/506614/1441195/ESTreeProcessor.js
 // @require      https://update.greasyfork.org/scripts/509664/WME%20Utils%20-%20Bootstrap.js
 // @require      https://update.greasyfork.org/scripts/516445/1480246/Make%20GM%20xhr%20more%20parallel%20again.js
-// @require      https://WazeDev.github.io/wmeGisLBBOX/wmeGisLBBOX.js
+// @require      https://update.greasyfork.org/scripts/542477/1623802/wmeGisLBBOX.js
 // @connect      greasyfork.org
 // @connect      github.io
 // @grant        GM_xmlhttpRequest
@@ -1194,11 +1194,14 @@
 
   const SHOW_UPDATE_MESSAGE = true;
   const SCRIPT_VERSION_CHANGES = [
-     'Major update:',
-     'Added Support for Additional Countries!',
-     'Load only the layers for the country and the 1st level subdivision given the current WME viewport.',
-     'Replaced US Census Tiger graph service with a new library using boundary boxes and GEOJSON objects.',
-     'Updated ArcGIS web services to return EPSG:4326 (WGS 84) instead of EPSG:3857, aligning with the new SDK requirement for coordinates',
+    'Minor update: 2025.07.14.00',
+    'Convert Old Layer Settings to new version format',
+    '',
+    'Major update: 2025.07.13.00',
+    'Added Support for Additional Countries!',
+    'Load only the layers for the country and the 1st level subdivision given the current WME viewport.',
+    'Replaced US Census Tiger graph service with a new library using boundary boxes and GEOJSON objects.',
+    'Updated ArcGIS web services to return EPSG:4326 (WGS 84) instead of EPSG:3857, aligning with the new SDK requirement for coordinates',
   ];
 
   // **************************************************************************************************************
@@ -1219,6 +1222,8 @@
   // const LAYER_INFO_URL = 'https://spreadsheets.google.com/feeds/list/1cEG3CvXSCI4TOZyMQTI50SQGbVhJ48Xip-jjWg4blWw/o7gusx3/public/values?alt=json';
   // const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSevPQLz2ohu_LTge9gJ9Nv6PURmCmaSSjq0ayOJpGdRr2xI0g/viewform?usp=pp_url&entry.2116052852={username}';
   const REQUEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfMhBxF0P6bn8dFfOoNTAF1LHBFXr5w9oXvzqsii_TfA-_Bmw/viewform?usp=pp_url&entry.831784226={username}';
+  const PRIVATE_LAYERS = { 'nc-henderson-sl-signs': ['the_cre8r', 'mapomatic'] }; // case sensitive -- use all lower case
+
   const DEFAULT_LAYER_NAME = 'GIS Layers - Default';
   const ROAD_LAYER_NAME = 'GIS Layers - Roads';
   const DEFAULT_STYLE = {
@@ -1650,7 +1655,7 @@
       const offset = settings.getLayerSetting(this.gisLayer.id, 'offset');
       if (offset) {
         this.#shiftLayerFeatures(offset.x * -1, offset.y * -1);
-        delete settings.layers[this.gisLayer.id].offset;
+        settings.removeLayerSetting(this.gisLayer.id, 'offset');
         saveSettingsToStorage();
       }
     }
@@ -1721,7 +1726,8 @@
       collapsedSections: {},
     };
 
-    let loadedSettings = {}; // Initialize as an empty object
+    let loadedSettings = {};
+    let migrated = false; // Track if any migration occurred
     const storedSettings = localStorage.getItem(SETTINGS_STORE_NAME);
 
     if (storedSettings) {
@@ -1734,20 +1740,40 @@
         }
       } catch (e) {
         logError(`Failed to parse settings from localStorage key "${SETTINGS_STORE_NAME}":`, e);
-        // loadedSettings remains {}
       }
     }
 
-    // Merge defaultSettings and loadedSettings.
-    // If loadedSettings is empty (due to error or no storage), it effectively uses defaults.
+    // ---- MIGRATION: old selectedStates -> selectedSubL1 ----
+    if (loadedSettings.selectedStates && Array.isArray(loadedSettings.selectedStates)) {
+      if (!Array.isArray(loadedSettings.selectedSubL1)) loadedSettings.selectedSubL1 = [];
+      loadedSettings.selectedStates.forEach((stateCode) => {
+        const converted = `USA-${stateCode}`;
+        if (!loadedSettings.selectedSubL1.includes(converted)) {
+          loadedSettings.selectedSubL1.push(converted);
+        }
+      });
+      delete loadedSettings.selectedStates;
+      migrated = true;
+      logDebug('Migrated legacy selectedStates to selectedSubL1');
+    }
+
+    // --- MERGE with defaults ---
     settings = { ...defaultSettings, ...loadedSettings };
 
+    // --- Save if migrated ---
+    if (migrated) {
+      saveSettingsToStorage();
+      logDebug('Settings saved after migration');
+    }
+
+    // --- Assign globals ---
     isPopupVisible = settings.isPopupVisible;
     useAcronyms = settings.useAcronyms;
     useTitleCase = settings.useTitleCase;
     useStateHwy = settings.useStateHwy;
     removeNewLines = settings.removeNewLines;
 
+    // --- Utility layer functions ---
     settings.getLayerSetting = function getLayerSetting(layerID, settingName) {
       const layerSettings = this.layers[layerID];
       if (!layerSettings) {
@@ -1755,6 +1781,7 @@
       }
       return layerSettings[settingName];
     };
+
     settings.setLayerSetting = function setLayerSetting(layerID, settingName, value) {
       let layerSettings = this.layers[layerID];
       if (!layerSettings) {
@@ -1763,15 +1790,25 @@
       }
       layerSettings[settingName] = value;
     };
+
+    // Remove an individual setting or the entire layer if no settingName
     settings.removeLayerSetting = function removeLayerSetting(layerID, settingName) {
-      const layerSettings = this.layers[layerID];
-      if (layerSettings) {
-        delete layerSettings[settingName];
+      if (typeof settingName === 'undefined') {
+        // Remove the entire layer settings block
+        delete this.layers[layerID];
+      } else {
+        const layerSettings = this.layers[layerID];
+        if (layerSettings) {
+          delete layerSettings[settingName];
+          // If the layerSettings object is now empty, remove the layer entirely
+          if (Object.keys(layerSettings).length === 0) {
+            delete this.layers[layerID];
+          }
+        }
       }
     };
 
-    // Handle legacy shortcut keys settings.
-    // TODO: Delete this later, after most users have updated.
+    // --- Legacy shortcut keys migration ---
     if (settings.toggleHnsOnlyShortcut) {
       settings.shortcuts.toggleHnsOnly = settings.toggleHnsOnlyShortcut;
       delete settings.toggleHnsOnlyShortcut;
@@ -2781,7 +2818,7 @@
       popup.id = 'layerLabelPopup';
       popup.style = `position: absolute; background: #d3d3d3; border: 2px solid #007bff; border-radius: 5px; 
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); z-index: 1000; width: 500px; max-width: 800px;
-                height: 300px; resize: both; overflow: hidden; max-height: 700px; left: ${popupPosition.left}; top: ${popupPosition.top}; `; 
+                height: 300px; resize: both; overflow: hidden; max-height: 700px; left: ${popupPosition.left}; top: ${popupPosition.top}; `;
       const header = document.createElement('div');
       header.style = 'background: #007bff; color: #fff; padding: 5px; cursor: move; border-radius: 3px 3px 0 0; display: flex; justify-content: space-between; align-items: center; height: 30px; ';
 
@@ -3072,7 +3109,7 @@
     layersToFetch.forEach((gisLayer) => {
       const zoom = sdk.Map.getZoomLevel();
       const url = getUrl(extentWGS84, gisLayer, zoom);
-      
+
       GM_xmlhttpRequest({
         url,
         context: lastToken,
@@ -3499,7 +3536,7 @@
                   .css({ 'padding-top': '0px', display: 'block' })
                   .append(
                     $('<input>', { type: 'checkbox', id, class: 'gis-layers-subL1-checkbox' }).change(countrySubL1, onSub1CheckChanged).prop('checked', settings.selectedSubL1.includes(countrySubL1)),
-                    $('<label>', { for: id }).css({ 'white-space': 'pre-line',}).text(fullName)
+                    $('<label>', { for: id }).css({ 'white-space': 'pre-line' }).text(fullName)
                   );
               })
             )
@@ -3516,7 +3553,7 @@
           .css({ 'padding-top': '2px' })
           .append(
             $('<input>', { type: 'checkbox', id: 'fill-parcels' }).change(onFillParcelsCheckedChanged).prop('checked', settings.fillParcels),
-            $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line', }).text('Fill parcels') 
+            $('<label>', { for: 'fill-parcels' }).css({ 'white-space': 'pre-line' }).text('Fill parcels')
           )
       )
     );
@@ -3636,61 +3673,87 @@
    */
   async function loadVisibleCountryData() {
     try {
+      // 1. Check zoom level: Only load data if user is zoomed in far enough
       const currentZoomLevel = sdk.Map.getZoomLevel();
       if (currentZoomLevel < 12) {
         return;
       }
 
-      await whatsInView(); // This function populates _whatsInView with the current visible countries and subs
+      // 2. Update _whatsInView: This asynchronously fills map with visible countries/subdivisions
+      await whatsInView();
 
+      // 3. Setup:
+      // countryCodes = Set of country codes in view
+      // countryRegionCodes = map ISO_ALPHA3 -> Set of subdivision codes for that country
       const countryCodes = new Set();
-      const regionCodes = new Set();
+      const countryRegionCodes = {};
 
+      // 4. Iterate through visible countries to build data structures
       for (const country in _whatsInView) {
         if (_whatsInView.hasOwnProperty(country)) {
           const countryInfo = _whatsInView[country];
           if (countryInfo.ISO_ALPHA3) {
             countryCodes.add(countryInfo.ISO_ALPHA3);
-          }
-          if (countryInfo.subL1) {
-            for (const subdivision in countryInfo.subL1) {
-              if (countryInfo.subL1.hasOwnProperty(subdivision)) {
-                const subdivisionInfo = countryInfo.subL1[subdivision];
-                if (subdivisionInfo.subL1_id) {
-                  regionCodes.add(subdivisionInfo.subL1_id);
+            const regionSet = new Set();
+
+            // Only add subdivision codes for this (not EVERY) country
+            if (countryInfo.subL1 && Object.keys(countryInfo.subL1).length > 0) {
+              for (const subdivision in countryInfo.subL1) {
+                if (countryInfo.subL1.hasOwnProperty(subdivision)) {
+                  const subdivisionInfo = countryInfo.subL1[subdivision];
+                  if (subdivisionInfo.subL1_id) {
+                    regionSet.add(subdivisionInfo.subL1_id);
+                  }
                 }
               }
             }
+            // No subdivisions? regionSet is empty; spreadsheet loader will fetch country-level layers
+            countryRegionCodes[countryInfo.ISO_ALPHA3] = regionSet;
           }
         }
       }
 
-      for (const isoCode of countryCodes) {
-        let newRegionCodesToLoad = new Set();
+      // 5. For EACH visible country, determine whether we need to load data for
+      // (a) All, if not loaded yet (b) any new subdivisions, if already loaded.
 
+      for (const isoCode of countryCodes) {
+        const regionCodes = countryRegionCodes[isoCode]; // Subdivisions of *this country*
+        let newRegionCodesToLoad = new Set(); // Set to hold only new region codes that need loading
+        let shouldLoad = false; // Flag: do we need to fetch spreadsheet at all for this country?
+
+        // If this country has NOT been loaded at all yet, do first load:
         if (!alreadyLoadedCountries.has(isoCode)) {
           logDebug(`Loading Layers for Country ${isoCode} with Subdivision(s): ${Array.from(regionCodes).join(', ')}`);
-          newRegionCodesToLoad = new Set(regionCodes);
-          alreadyLoadedCountries.add(isoCode);
+          newRegionCodesToLoad = new Set(regionCodes); // could be empty set (for country-level layers)
+          shouldLoad = true; // mark to load
         } else {
+          // Country already loaded; just check for any new subdivisions that appeared in view
           regionCodes.forEach((regionCode) => {
             if (!alreadyLoadedSubL1.has(regionCode)) {
               logDebug(`Loading New Subdivision(s) ${regionCode} Layers for Country ${isoCode}`);
-              newRegionCodesToLoad.add(regionCode);
+              newRegionCodesToLoad.add(regionCode); // only add NEW regions
+              shouldLoad = true;
             }
           });
         }
 
-        if (newRegionCodesToLoad.size > 0) {
+        // 6. Only run spreadsheet load when required:
+        // - On COUNTRY first load (even if regions empty!)
+        // - If there are newly appeared subdivisions
+        if (shouldLoad) {
+          // Critical: do not mark as loaded until load succeeds
           await loadSpreadsheetAsync(isoCode, newRegionCodesToLoad);
-          initGui(false); // Update GUI after loading data
+          alreadyLoadedCountries.add(isoCode); // mark THIS country as loaded AFTER loading!
+          initGui(false); // Refresh GUI (if necessary) after updating layers
         }
 
+        // 7. Mark all loaded subdivisions so we don't reload them again
         newRegionCodesToLoad.forEach((regionCode) => {
           alreadyLoadedSubL1.add(regionCode);
         });
       }
     } catch (error) {
+      // 8. Graceful error logging and re-throw for diagnostics
       logError(`Error in loadVisibleCountryData: ${error.message}`);
       throw error;
     }
